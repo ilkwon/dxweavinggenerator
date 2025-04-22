@@ -1,0 +1,821 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Expires" content="-1" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Cache-Control" content="no-cache" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="ALL, INDEX, FOLLOW" />
+<meta name="Location" content="South Korea" />
+<meta name="Distribution" content="global" />
+<meta name="twitter:card" content="summary_large_image">
+<title></title>
+<style>
+.view-iconset input[type="color"] {
+    position: absolute;
+    width: 0;
+    height: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+}
+.VIEWER {
+    -webkit-appearance: none; /* 기본 CSS 스타일을 적용하지 않기 위해서 */
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%)
+}
+.SLIDER_CONTAINER {
+    -webkit-appearance: none; /* 기본 CSS 스타일을 적용하지 않기 위해서 */
+    position:absolute; 
+    bottom: 50px;
+    right:30px;
+    border-radius: 5px; /* 슬라이더 모서리를 약간 둥글게 */
+    font-family:"굴림";
+    font-size:8pt;
+    background: #ccc; /* 슬라이더 색상 */
+    outline: none; /* 슬라이더 테두리 없이 */
+}
+.SLIDER {
+    width: 200px; /* 슬라이더 길이 */
+    height: 20px; /* 슬라이더 두께 */
+    padding: 5px 5px 5px 10px;
+}
+
+/* 슬라이더 핸들(클릭해서 드래그하는 부분) 커스텀 
+(Chrome, Opera, Safari, Edge 브라우저를 위해서는 -webkit-을,
+Firefox 브라우저를 위해서는 -moz- 를 사용하세요 */
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* 기본 CSS 스타일을 적용하지 않기 위해서 */
+    appearance: none; /* 기본 CSS 스타일을 적용하지 않기 위해서 */
+    width: 25px; /* 슬라이더 핸들 길이 */
+    height: 25px; /* 슬라이더 핸들 높이 */
+    border-radius: 50%; /* 핸들 모양을 원모양으로 만들기 위함 */
+    background: #00f; /* 슬라이더 핸들 색상 */
+    cursor: pointer; /* 슬라이더 핸들에 마우스를 갖다대면 포인터로 변경 */
+}
+
+.slider::-moz-range-thumb {
+    width: 25px; /* 슬라이더 핸들 길이 */
+    height: 25px; /* 슬라이더 핸들 높이 */
+    border-radius: 50%; /* 핸들 모양을 원모양으로 만들기 위함 */
+    background: #00f; /* 슬라이더 핸들 색상 */
+    cursor: pointer; /* 슬라이더 핸들에 마우스를 갖다대면 포인터로 변경 */
+}
+#LOADING {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    position: fixed;
+    display: block;
+    background: #ededed;
+    opacity: 0.7;
+    z-index: 99;
+    text-align: center;
+}
+#LOADING > #loading_bar {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 100;
+    transform : translate(-50%, -50%);
+}
+</style>
+
+<script src="/threejs/build/three.min.js"></script>
+<script src="/threejs/examples/js/loaders/OBJLoader.js"></script>
+<script src="/threejs/examples/js/loaders/GLTFLoader.js"></script>
+<script src="/threejs/examples/js/loaders/DRACOLoader.js"></script>
+<script src="/threejs/examples/js/controls/OrbitControls.js"></script>
+<script src="/threejs/examples/js/geometries/DecalGeometry.js"></script>
+
+<script src="/threejs/examples/js/loaders/RGBELoader.js"></script>
+<script src="/threejs/examples/js/loaders/HDRCubeTextureLoader.js"></script>
+<script src="/threejs/examples/js/environments/DebugEnvironment.js"></script>
+
+<script>
+    let loadOBJ;
+	const t = setInterval(function () {
+			if(loadOBJ!=undefined) {
+				loadOBJ();
+				clearInterval(t);
+			}
+		}, 500);
+</script>
+
+</head>
+
+<body style="background-color: #FFFFFF; overflow: hidden">
+    <div class="container">
+        <div id="LOADING" style="display: block; ">
+            <div id="loading_bar">
+                <img src="/loading.gif">
+            </div>
+        </div>
+
+		<div id="VIEWER" class="VIEWER">
+		</div>
+
+        <DIV class="SLIDER_CONTAINER">
+            <div class="SLIDER" ID="METAL">
+            광택 Dull <input type="range" ID="METAL_CONTROL" min="0" max="3" value="0" style="width:80px;height:12px"> Shiny
+            </div>
+            <div class="SLIDER" ID="KIND">
+            Roughness <input type="range" ID="METAL_KIND" min="0" max="1" value="0" style="width:80px;height:12px"> Sheen
+            </div>
+            <div class="SLIDER" ID="DRAPE">
+            드레이프 <input type="range" ID="DRAPE_CONTROL" min="0" max="9" value="5" style="width:80px;height:12px">
+            </div>
+            
+            <div class="SLIDER" ID="OBJECT">
+            오브젝트
+            <select name="OBJECT_CONTROL" id="OBJECT_CONTROL">
+                <option value="cube">큐브</option>
+                <option value="ball">볼</option>
+                <option value="table">테이블</option>
+                <option value="bar">바</option>
+              </select>
+            </div>
+            
+        </DIV>
+	</div>
+	
+<script>
+
+	let container;
+
+	let camera, scene, renderer;
+
+	let mouseX = 0, mouseY = 0;
+
+	let viewerWidth;
+	let viewerHeight;
+	let windowHalfX;
+	let windowHalfY;
+
+	let ambientLight, light;
+	let controls;
+	
+	
+	let currFabric = 5; // 현재 선택된 페브릭 
+    let currObject = "cube";
+	
+    var arrObject = new Array();// 큐브, 볼, 테이블, 바
+    
+    var arrCubeFabricObject = new Array(); 
+    var arrBallFabricObject = new Array(); 
+    var arrTableFabricObject = new Array(); 
+    var arrBarFabricObject = new Array(); 
+    
+    var arrCubeMaterial = new Array();
+    var arrBallMaterial = new Array();
+    var arrTableMaterial = new Array();
+    var arrBarMaterial = new Array();
+    
+    let IsLoaded = false;
+	var cntFabric = 10;
+	var totalFabric = 4 * cntFabric;
+    
+    
+    
+    let textureLoader;
+    
+	let REPEAT_X 	    = 1;
+	let REPEAT_Y 	    = 1;
+
+    let generatedCubeRenderTarget, ldrCubeRenderTarget, hdrCubeRenderTarget, rgbmCubeRenderTarget;
+    let ldrCubeMap, hdrCubeMap, rgbmCubeMap;
+    let oldEnvMap;
+
+    const objLoader = new THREE.OBJLoader();
+	const gltfLoader = new THREE.GLTFLoader();
+	const dracoLoader = new THREE.DRACOLoader();
+	
+	
+	
+	init();
+	animate();
+    
+    
+    ////////////////////////////////////////////////////////////////////////////
+    // 오브젝트 로드 (큐브, 볼, 테이블, 바)
+    ////////////////////////////////////////////////////////////////////////////
+    function loadGltfObject(objName, idx, fileName, visible){
+        gltfLoader.load(fileName, function (obj) {
+            //2025-02-10 soonchol
+            //set default material(non-transparent)
+            const Material = new THREE.MeshStandardMaterial({
+                color: "#ffffff",
+                transparent: false,
+                roughness: 1,
+                metalness: 0,
+                side: THREE.DoubleSide
+            });
+            obj.scene.traverse(function (child) {
+                if (child.isMesh) {
+                    child.material = Material;
+                }
+            });
+			obj.scene.name = objName;
+            obj.scene.position.y = -140;
+            obj.scene.rotation.y = 90;
+			obj.scene.scale.set(100.0, 100.0, 100.0);
+			obj.scene.visible = visible;
+			scene.add(obj.scene);
+			
+			arrObject[idx] = obj;
+			
+		}, function (xhr){
+			if ( xhr.lengthComputable ) {
+				;//console.log('Model: '+  Math.round(( xhr.loaded / xhr.total * 100 ), 2) + '% loaded' );
+			}
+		}, function (error){
+			console.log(error);
+		});
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////
+    // 페브릭 오브젝트 로드 (큐브, 볼, 테이블, 바)
+    ////////////////////////////////////////////////////////////////////////////
+    function loadGltfFabricObject(objName, idx, fileName, visible, DiffMap, NormMap){
+        gltfLoader.load(fileName, function (obj) {
+            //2025-02-10 soonchol
+            const Material = new THREE.MeshPhysicalMaterial({
+            //const Material = new THREE.MeshStandardMaterial({
+				map: DiffMap,
+				normalMap: NormMap,
+				color:"#ffffff",
+                transparent: true,
+                roughness: 1,
+                metalness: 0,
+                //2025-02-10 soonchol
+                sheen: 0.0,
+                sheenRoughness: 1.0,
+                //sheenColor: "#ffffff",
+                sheenColor: "#404040",
+                side: THREE.DoubleSide
+			});
+			obj.scene.traverse(function (child) {
+				if (child.isMesh) {
+					child.material = Material;
+				}
+			});
+			obj.scene.name = idx;
+            obj.scene.position.y = -140;
+            obj.scene.rotation.y = 90;
+			obj.scene.scale.set(100.0, 100.0, 100.0);
+            
+			scene.add(obj.scene);
+			obj.scene.visible = visible;
+			//console.log("load ["+idx+"] ....");
+			
+			//console.log("Material["+idx+"] : " + Material.map);
+			
+			if(objName == "cube"){
+			    arrCubeFabricObject[idx] = obj;
+			    arrCubeMaterial[idx] = Material;
+			} else if(objName == "ball"){
+			    arrBallFabricObject[idx] = obj;
+			    arrBallMaterial[idx] = Material;
+			} else if(objName == "table"){
+			    arrTableFabricObject[idx] = obj;
+			    arrTableMaterial[idx] = Material;
+			} else{
+			    arrBarFabricObject[idx] = obj;
+			    arrBarMaterial[idx] = Material;
+			}
+			
+			var nCubeFabric = arrCubeFabricObject.length;
+			var nBallFabric = arrBallFabricObject.length;
+			var nTableFabric = arrTableFabricObject.length;
+			var nBarFabric = arrBarFabricObject.length;
+			var totalLoaded = nCubeFabric + nBallFabric + nTableFabric + nBarFabric;
+			if(totalLoaded >= totalFabric){
+			    document.getElementById( 'LOADING' ).style.display = "none";
+                IsLoaded = true;
+            }
+			
+		}, function (xhr){
+			if ( xhr.lengthComputable ) {
+				;//console.log('Model: '+  Math.round(( xhr.loaded / xhr.total * 100 ), 2) + '% loaded' );
+			}
+		}, function (error){
+			console.log(error);
+			alert("ERROR : " + error);
+		});
+    }
+    
+	function getCurrFabricMaterial(){
+    	var arr;
+    	if(currObject == "cube"){
+		    arr = arrCubeMaterial;
+		} else if(currObject == "ball"){
+		    arr = arrBallMaterial;
+		} else if(currObject == "table"){
+		    arr = arrTableMaterial;
+		} else{
+		    arr = arrBarMaterial;
+		}
+		return arr;
+	}
+    
+	loadOBJ = function(){
+	    
+		////////////////////////////////////////////////////////////////////////
+		// loader
+		////////////////////////////////////////////////////////////////////////
+		dracoLoader.setDecoderPath( '/threejs/examples/js/libs/draco/');
+		dracoLoader.setDecoderConfig({type: 'js'});
+		gltfLoader.setDRACOLoader( dracoLoader );
+        
+        ////////////////////////////////////////////////////////////////////////
+		// TextureLoader
+		////////////////////////////////////////////////////////////////////////
+		textureLoader = new THREE.TextureLoader();
+        
+        // 기본 텍스쳐 diff.png norm.png 로딩
+        const DiffMap = textureLoader.load('/diff.png' , texture => {
+            // diff.png 196 x 196
+            REPEAT_X = (36000/196);
+            REPEAT_Y = (36000/196);
+            
+			texture.repeat.set(REPEAT_X, REPEAT_Y);
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+			texture.needsUpdate = true;
+		});
+		const NormMap = textureLoader.load('/norm.png' , texture => {
+		    // norm.png 196 x 196
+            REPEAT_X = (36000/196);
+            REPEAT_Y = (36000/196);
+            
+			texture.repeat.set(REPEAT_X, REPEAT_Y);
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+			texture.needsUpdate = true;
+		});
+		/*
+		const RoughMap = textureLoader.load('/rough.png' , texture => {
+		    // norm.png 196 x 196
+            REPEAT_X = (36000/196);
+            REPEAT_Y = (36000/196);
+            
+			texture.repeat.set(REPEAT_X, REPEAT_Y);
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+			texture.needsUpdate = true;
+		});
+		*/
+        
+        ////////////////////////////////////////////////////////////////////////
+		// CUBE OBJECT
+		// 주의) 순서 중요 CUBE OBJECT > FABRIC OBJECT
+		////////////////////////////////////////////////////////////////////////
+		loadGltfObject('cube', 0, '/CUBE.gltf', true); // 큐브 초기 활성화
+		loadGltfObject('ball', 1, '/BALL.gltf', false);
+		loadGltfObject('table', 2, '/TABLE.gltf', false);
+		loadGltfObject('bar', 3, '/BAR.gltf', false);
+		
+		
+		////////////////////////////////////////////////////////////////////////
+		// FABRIC OBJECT (10개씩)
+		////////////////////////////////////////////////////////////////////////
+		for(let i = 0; i < cntFabric; i++){
+    		var visible = false;
+    		if(currFabric == i){
+			    visible = true;
+			}
+    		loadGltfFabricObject('cube', i, '/CUBE_FABRIC_'+i+'.gltf', visible, DiffMap, NormMap); // 큐브 초기 활성화
+    		loadGltfFabricObject('ball', i, '/BALL_FABRIC_'+i+'.gltf', false, DiffMap, NormMap);
+    		loadGltfFabricObject('table', i, '/TABLE_FABRIC_'+i+'.gltf', false, DiffMap, NormMap);
+    		loadGltfFabricObject('bar', i, '/BAR_FABRIC_'+i+'.gltf', false, DiffMap, NormMap);
+        }
+        
+        //2025-02-10 soonchol
+        THREE.DefaultLoadingManager.onLoad = function () {
+            pmremGenerator.dispose();
+        };
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        pmremGenerator.compileCubemapShader();//큐브맵을 생성
+
+        const envScene = new THREE.DebugEnvironment();
+        generatedCubeRenderTarget = pmremGenerator.fromScene(envScene);
+	}
+    
+    
+    
+	function init() {
+		container 		= document.getElementById( 'VIEWER' );
+		viewerWidth     = container.clientWidth;
+		viewerHeight    = container.clientHeight;
+		windowHalfX     = viewerWidth / 2;
+		windowHalfY     = viewerHeight / 2;
+        
+		////////////////////////////////////////////////////////////////////////
+		// camera
+		////////////////////////////////////////////////////////////////////////
+		camera = new THREE.PerspectiveCamera( 45, viewerWidth / viewerHeight, 0.1, 1000 );
+		camera.position.z = 80;
+        camera.position.x = 150;
+		camera.position.y = 20;
+		//camera.lookAt( scene.position );
+        
+		////////////////////////////////////////////////////////////////////////
+		// scene
+		////////////////////////////////////////////////////////////////////////
+		scene = new THREE.Scene();
+		scene.background = new THREE.Color( 0xFFFFFF );
+		scene.add( camera );
+        
+		////////////////////////////////////////////////////////////////
+		// LIGHTS - start
+		////////////////////////////////////////////////////////////////
+        let intensity = 0.5;
+        const ambientLight = new THREE.AmbientLight( 0xffffff, 0.3 );
+        scene.add( ambientLight );
+
+        //const pointLightF = new THREE.PointLight(0xffffff, intensity);
+        //pointLightF.position.set( 0, 80, 120 );
+        //scene.add( pointLightF );
+        
+        //const pointLightR = new THREE.PointLight( 0xffffff, intensity );
+        //pointLightR.position.set( 120, 80, 0 );
+        //scene.add( pointLightR );
+        
+        //const pointLightB = new THREE.PointLight( 0xffffff, intensity );
+        //pointLightB.position.set( 0, 80, -120 );
+        //scene.add( pointLightB );
+        
+        //const pointLightL = new THREE.PointLight( 0xffffff, intensity );
+        //pointLightL.position.set( -120, 80, 0 );
+        //scene.add( pointLightL );
+
+        /*
+		const pointLightF = new THREE.PointLight( 0xffffff, intensity );
+		pointLightF.position.set( 0, 80, 120 );
+		scene.add( pointLightF );
+        
+		const pointLightR = new THREE.PointLight( 0xffffff, intensity );
+		pointLightR.position.set( 120, 80, 0 );
+		scene.add( pointLightR );
+        
+		const pointLightB = new THREE.PointLight( 0xffffff, intensity );
+		pointLightB.position.set( 0, 80, -120 );
+		scene.add( pointLightB );
+        
+		const pointLightL = new THREE.PointLight( 0xffffff, intensity );
+		pointLightL.position.set( -120, 80, 0 );
+		scene.add( pointLightL );
+        */
+		////////////////////////////////////////////////////////////////
+		// LIGHTS - END
+		////////////////////////////////////////////////////////////////
+        
+		renderer = new THREE.WebGLRenderer({ alpha: true });
+		renderer.setClearColor( 0xffffff, 0);
+		//renderer.outputEncoding = THREE.sRGBEncoding;
+		renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize(viewerWidth, viewerHeight);
+        renderer.physicallyCorrectLights = true;
+        //renderer.toneMapping = THREE.ACESFilmicToneMapping;
+		container.appendChild( renderer.domElement );
+        
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
+		controls.minDistance = -100;
+		controls.maxDistance = 500;
+		controls.maxPolarAngle = Math.PI;
+        
+		window.addEventListener( 'resize', onWindowResize );
+        
+        document.getElementById('METAL').addEventListener('input', function (event) {
+            onMetalChanged();
+	    });
+        
+        document.getElementById('KIND').addEventListener('input', function (event) {
+            onMetalChanged();
+        });
+
+        document.getElementById('DRAPE').addEventListener('input', function (event) {
+            //alert(this.value);
+            changeFabricObjectIdx(event.target.value);
+        });
+        
+        document.getElementById( 'OBJECT' ).addEventListener( 'change', function (event) {
+            //alert(event.target.value);
+            changeObject(event.target.value);
+        });
+	}
+
+    function onMetalChanged() {
+        //alert(this.value);
+        var v = GetMetalValue();
+        //2025-02-10 soonchol
+        var kind = GetMetalKindValue();
+
+        var arr = getCurrFabricMaterial();
+        for (var i = 0; i < arr.length; i++) {
+            let Material = arr[i];
+
+            //reset
+            Material.sheen = 0;
+            Material.sheenRoughness = 1;
+            Material.roughness = 1;
+            Material.metalness = 0;
+
+            if (v == 0) {
+                if (kind == 0) {
+                    Material.roughness = 1;
+                    Material.metalness = 0;
+                    //alert('1')
+                } else {
+                    Material.sheen = 0;
+                    Material.sheenRoughness = 0.3;
+                    //alert('2')
+                }
+                //Material.roughness = 1;
+                //Material.metalness = 0;
+            } else if (v == 1) {
+                if (kind == 0) {
+                    Material.roughness = 0.55;
+                    Material.metalness = 0.01;
+                    //alert('3')
+                } else {
+                    Material.sheen = 0.4;
+                    Material.sheenRoughness = 0.3;
+                    //alert('4')
+                }
+                //Material.roughness = 0.4;
+                //Material.metalness = 0.01;
+            } else if (v == 2) {
+                if (kind == 0) {
+                    Material.roughness = 0.45;
+                    Material.metalness = 0.02;
+                    //alert('5')
+                } else {
+                    Material.sheen = 0.8;
+                    Material.sheenRoughness = 0.2;
+                    //alert('6')
+                }
+                //Material.roughness = 0.35;
+                //Material.metalness = 0.02;
+            } else if (v == 3) {
+                if (kind == 0) {
+                    Material.roughness = 0.40;
+                    Material.metalness = 0.02;
+                    //Material.roughness = 0.3;
+                    //Material.metalness = 0.03;
+                    //alert('7')
+                } else {
+                    Material.sheen = 1;
+                    Material.sheenRoughness = 0.2;
+                    //alert('8')
+                }
+                //Material.roughness = 0.3;
+                //Material.metalness = 0.03;
+            }
+        }
+    }
+    
+	function onWindowResize() {
+	    container 		= document.getElementById( 'VIEWER' );
+		viewerWidth     = container.clientWidth;
+		viewerHeight    = container.clientHeight;
+		
+		windowHalfX = viewerWidth / 2;
+		windowHalfY = viewerHeight / 2;
+		camera.aspect = viewerWidth / viewerHeight;
+		camera.updateProjectionMatrix();
+		renderer.setSize( viewerWidth, viewerHeight );
+	}
+    
+	function onDocumentMouseMove( event ) {
+		mouseX = ( event.clientX - windowHalfX ) / 2;
+		mouseY = ( event.clientY - windowHalfY ) / 2;
+	}
+    
+	function animate() {
+		requestAnimationFrame(animate);
+		render();
+	}
+    
+	function render() {
+        //camera.lookAt( scene.position );
+        //2025-02-10 soonchol
+        let renderTarget, cubeMap;
+        if (generatedCubeRenderTarget) {
+
+            renderTarget = generatedCubeRenderTarget;
+            cubeMap = generatedCubeRenderTarget.texture;
+
+            const newEnvMap = renderTarget ? renderTarget.texture : null;
+            if (newEnvMap) {
+                if (newEnvMap !== oldEnvMap) {
+                
+                    var arr = getCurrFabricMaterial();
+                    // 도형의 메트리얼에 EnvMap 을 설정
+                    for (var i = 0; i < arr.length; i++) {
+                        const Material = arr[i];
+                        Material.envMap = newEnvMap;
+                        Material.needsUpdate = true;
+                    }
+                    oldEnvMap = newEnvMap;
+                }
+            }
+
+            scene.background = cubeMap;
+            scene.environment = cubeMap;
+        }
+
+
+        renderer.toneMappingExposure = 1;
+		renderer.render( scene, camera );
+	}
+	var IDX = "";
+	function ReloadMap2(idx, n){
+	    IDX = idx;
+	    //console.log("ReloadMap2 : /norm_"+idx+".png?v="+n);
+	    
+        var img = new Image;
+        img.src = "/diff_"+idx+".png?v="+n;
+        img.addEventListener('load', function() {
+            // 도구에서 1인치 원단을 생성할때 파일의 크기를 가로 세로 600 로 생성 함
+            // 1인치를 3D 뷰어에 표시 하는 경우 repeat 설정 x = 60, y = 60 으로 하면 실물과 유사함.
+            REPEAT_X = (36000/img.width);
+            REPEAT_Y = (36000/img.height);
+            //console.log("ReloadMap2 : img.size : "+this.width+", "+this.height+" , REPEAT_X : "+REPEAT_X+", REPEAT_Y : " + REPEAT_Y);
+            const DiffMap = textureLoader.load('/diff_'+idx+'.png?v='+n, texture => {
+            	texture.repeat.set(REPEAT_X, REPEAT_Y);
+            	texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            	texture.needsUpdate = true;
+            });
+            const NormMap = textureLoader.load('/norm_'+idx+'.png?v='+n, texture => {
+    			texture.repeat.set(REPEAT_X, REPEAT_Y);
+    			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            	texture.needsUpdate = true;
+    		});
+    		const RoughMap = textureLoader.load('/roug_'+idx+'.png?v='+n, texture => {
+    			texture.repeat.set(REPEAT_X, REPEAT_Y);
+    			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            	texture.needsUpdate = true;
+    		});
+            
+            var arr = arrCubeMaterial;
+            for (var i = 0; i < arr.length; i++) {
+                const Metrial = arr[i];
+                Metrial.map = DiffMap;
+                Metrial.normalMap = NormMap;
+                Metrial.roughnessMap = RoughMap;
+            }
+
+            var arr = arrBallMaterial;
+            for (var i = 0; i < arr.length; i++) {
+                const Metrial = arr[i];
+                Metrial.map = DiffMap;
+                Metrial.normalMap = NormMap;
+                Metrial.roughnessMap = RoughMap;
+            }
+
+            var arr = arrTableMaterial;
+            for (var i = 0; i < arr.length; i++) {
+                const Metrial = arr[i];
+                Metrial.map = DiffMap;
+                Metrial.normalMap = NormMap;
+                Metrial.roughnessMap = RoughMap;
+            }
+
+            var arr = arrBarMaterial;
+            for (var i = 0; i < arr.length; i++) {
+                const Metrial = arr[i];
+                Metrial.map = DiffMap;
+                Metrial.normalMap = NormMap;
+                Metrial.roughnessMap = RoughMap;
+            }
+
+
+        });
+        
+        
+	}
+	function ReloadMap(n){
+	    // norm.png 196 x 196
+        REPEAT_X = (36000/196);
+        REPEAT_Y = (36000/196);
+        const DiffMap = textureLoader.load('/diff.png?v='+n, texture => {
+        	texture.repeat.set(REPEAT_X, REPEAT_Y);
+        	texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        	texture.needsUpdate = true;
+        });
+        const NormMap = textureLoader.load('/norm.png?v='+n, texture => {
+			texture.repeat.set(REPEAT_X, REPEAT_Y);
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        	texture.needsUpdate = true;
+		});
+		const RoughMap = textureLoader.load('/roug_'+idx+'.png?v='+n, texture => {
+			texture.repeat.set(REPEAT_X, REPEAT_Y);
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        	texture.needsUpdate = true;
+		});
+		
+        var arr = getCurrFabricMaterial();
+		for(var i = 0; i < arr.length; i++){
+	        const Material = arr[i];
+            Material.map        = DiffMap;
+            Material.normMap    = NormMap;
+   			Metrial.roughnessMap = RoughMap;
+	    }
+	    
+	}
+	function SetMetalness(idx){
+        
+	}
+	function invisibleFabricObject(){
+	    for(var i = 0; i < arrCubeFabricObject.length; i++){
+	        let obj1 = arrCubeFabricObject[i];
+	        obj1.scene.visible = false;
+	    }
+	    for(var i = 0; i < arrBallFabricObject.length; i++){
+	        let obj1 = arrBallFabricObject[i];
+	        obj1.scene.visible = false;
+	    }
+	    for(var i = 0; i < arrTableFabricObject.length; i++){
+	        let obj1 = arrTableFabricObject[i];
+	        obj1.scene.visible = false;
+	    }
+	    for(var i = 0; i < arrBarFabricObject.length; i++){
+	        let obj1 = arrBarFabricObject[i];
+	        obj1.scene.visible = false;
+	    }
+	}
+	function changeFabricObjectIdx(idx){
+	    changeFabricObject(currObject, idx);
+	}
+	function changeFabricObject(objName, idx){
+	    // 모두 초기화
+    	invisibleFabricObject();
+    	
+		var arr;
+    	if(objName == "cube"){
+		    arr = arrCubeFabricObject;
+		} else if(objName == "ball"){
+		    arr = arrBallFabricObject;
+		} else if(objName == "table"){
+		    arr = arrTableFabricObject;
+		} else{
+		    arr = arrBarFabricObject;
+		}
+		
+	    for(var i = 0; i < arr.length; i++){
+	        let obj1 = arr[i];
+	        obj1.scene.visible = false;
+	        var n = obj1.scene.name;
+	        if(idx == n){
+	            obj1.scene.visible = true;
+	        }
+	    }
+	    currFabric = idx;
+	}
+	function changeObject(objName){
+	    for(var i = 0; i < arrObject.length; i++){
+	        let obj1 = arrObject[i];
+	        obj1.scene.visible = false;
+	        var n = obj1.scene.name;
+	        if(objName == n){
+	            obj1.scene.visible = true;
+	            changeFabricObject(objName, currFabric);
+	            currObject = objName;
+	        }
+	    }
+	}
+	function IsLoadedObject(){
+	    if(IsLoaded == true){
+	        return "DONE";
+	    }
+	    return "";
+	}
+	function GetMetalValue(){
+        var v = document.getElementById('METAL_CONTROL').value;
+        return v;
+    }
+    //2025-02-10 soonchol
+    function GetMetalKindValue() {
+        var v = document.getElementById('METAL_KIND').value;
+        return v;
+    }
+    function GetDrapeValue() {
+        var v = document.getElementById('DRAPE_CONTROL').value;
+        return v;
+    }
+    function GetObjectValue() {
+        var v = document.getElementById('OBJECT_CONTROL').value;
+        return v;
+    }
+</script>
+
+
+
+</body>
+</html>

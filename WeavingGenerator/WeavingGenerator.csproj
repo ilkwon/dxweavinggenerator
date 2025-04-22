@@ -1,0 +1,847 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows7.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <ApplicationIcon>main-32.ico</ApplicationIcon>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="runtimes\win-arm64\**" />
+    <Compile Remove="wwwroot\threejs\css\**" />
+    <Compile Remove="wwwroot\threejs\examples\js\helpers\**" />
+    <Compile Remove="wwwroot\threejs\examples\js\libs\**" />
+    <Compile Remove="wwwroot\threejs\examples\js\loaders\lwo\**" />
+    <EmbeddedResource Remove="runtimes\win-arm64\**" />
+    <EmbeddedResource Remove="wwwroot\threejs\css\**" />
+    <EmbeddedResource Remove="wwwroot\threejs\examples\js\helpers\**" />
+    <EmbeddedResource Remove="wwwroot\threejs\examples\js\libs\**" />
+    <EmbeddedResource Remove="wwwroot\threejs\examples\js\loaders\lwo\**" />
+    <None Remove="runtimes\win-arm64\**" />
+    <None Remove="wwwroot\threejs\css\**" />
+    <None Remove="wwwroot\threejs\examples\js\helpers\**" />
+    <None Remove="wwwroot\threejs\examples\js\libs\**" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\lwo\**" />
+    <Page Remove="runtimes\win-arm64\**" />
+    <Page Remove="wwwroot\threejs\css\**" />
+    <Page Remove="wwwroot\threejs\examples\js\helpers\**" />
+    <Page Remove="wwwroot\threejs\examples\js\libs\**" />
+    <Page Remove="wwwroot\threejs\examples\js\loaders\lwo\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CefSharp.Common.NETCore" Version="119.4.30" />
+    <PackageReference Include="CefSharp.WinForms.NETCore" Version="119.4.30" />
+    <PackageReference Include="DevExpress.Win.Design" Version="22.1.*-*" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\af.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\am.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\ar.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\bg.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\bn.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\ca.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\cs.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\da.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\de.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\el.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\en-GB.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\en-US.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\es-419.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\es.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\et.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\fa.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\fi.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\fil.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\fr.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\gu.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\he.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\hi.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\hr.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\hu.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\id.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\it.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\ja.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\kn.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\ko.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\lt.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\lv.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\ml.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\mr.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\ms.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\nb.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\nl.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\pl.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\pt-BR.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\pt-PT.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\ro.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\ru.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\sk.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\sl.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\sr.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\sv.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\sw.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\ta.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\te.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\th.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\tr.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\uk.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\ur.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\vi.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\zh-CN.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-x64\locales\zh-TW.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\cefsharp.common.netcore\119.4.30\buildTransitive\..\runtimes\win-x64\lib\netcoreapp3.1\CefSharp.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\cefsharp.common.netcore\119.4.30\buildTransitive\..\runtimes\win-x64\lib\netcoreapp3.1\Ijwhost.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\af.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\am.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\ar.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\bg.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\bn.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\ca.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\cs.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\da.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\de.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\el.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\en-GB.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\en-US.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\es-419.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\es.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\et.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\fa.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\fi.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\fil.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\fr.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\gu.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\he.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\hi.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\hr.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\hu.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\id.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\it.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\ja.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\kn.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\ko.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\lt.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\lv.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\ml.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\mr.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\ms.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\nb.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\nl.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\pl.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\pt-BR.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\pt-PT.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\ro.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\ru.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\sk.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\sl.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\sr.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\sv.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\sw.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\ta.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\te.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\th.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\tr.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\uk.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\ur.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\vi.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\zh-CN.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\chromiumembeddedframework.runtime\119.4.3\buildTransitive\..\CEF\win-arm64\locales\zh-TW.pak" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\cefsharp.common.netcore\119.4.30\buildTransitive\..\runtimes\win-arm64\lib\netcoreapp3.1\CefSharp.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\user1\.nuget\packages\cefsharp.common.netcore\119.4.30\buildTransitive\..\runtimes\win-arm64\lib\netcoreapp3.1\Ijwhost.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="CefSharp.BrowserSubprocess.exe" />
+    <None Remove="clo\FABRIC.fab" />
+    <None Remove="wwwroot\BALL.gltf" />
+    <None Remove="wwwroot\BALL_FABRIC_0.gltf" />
+    <None Remove="wwwroot\BALL_FABRIC_1.gltf" />
+    <None Remove="wwwroot\BALL_FABRIC_2.gltf" />
+    <None Remove="wwwroot\BALL_FABRIC_3.gltf" />
+    <None Remove="wwwroot\BALL_FABRIC_4.gltf" />
+    <None Remove="wwwroot\BALL_FABRIC_5.gltf" />
+    <None Remove="wwwroot\BALL_FABRIC_6.gltf" />
+    <None Remove="wwwroot\BALL_FABRIC_7.gltf" />
+    <None Remove="wwwroot\BALL_FABRIC_8.gltf" />
+    <None Remove="wwwroot\BALL_FABRIC_9.gltf" />
+    <None Remove="wwwroot\BAR.gltf" />
+    <None Remove="wwwroot\BAR_FABRIC_0.gltf" />
+    <None Remove="wwwroot\BAR_FABRIC_1.gltf" />
+    <None Remove="wwwroot\BAR_FABRIC_2.gltf" />
+    <None Remove="wwwroot\BAR_FABRIC_3.gltf" />
+    <None Remove="wwwroot\BAR_FABRIC_4.gltf" />
+    <None Remove="wwwroot\BAR_FABRIC_5.gltf" />
+    <None Remove="wwwroot\BAR_FABRIC_6.gltf" />
+    <None Remove="wwwroot\BAR_FABRIC_7.gltf" />
+    <None Remove="wwwroot\BAR_FABRIC_8.gltf" />
+    <None Remove="wwwroot\BAR_FABRIC_9.gltf" />
+    <None Remove="wwwroot\CUBE.gltf" />
+    <None Remove="wwwroot\CUBE.obj" />
+    <None Remove="wwwroot\CUBE_FABRIC.obj" />
+    <None Remove="wwwroot\CUBE_FABRIC_0.gltf" />
+    <None Remove="wwwroot\CUBE_FABRIC_0.obj" />
+    <None Remove="wwwroot\CUBE_FABRIC_1.gltf" />
+    <None Remove="wwwroot\CUBE_FABRIC_1.obj" />
+    <None Remove="wwwroot\CUBE_FABRIC_2.gltf" />
+    <None Remove="wwwroot\CUBE_FABRIC_2.obj" />
+    <None Remove="wwwroot\CUBE_FABRIC_3.gltf" />
+    <None Remove="wwwroot\CUBE_FABRIC_3.obj" />
+    <None Remove="wwwroot\CUBE_FABRIC_4.gltf" />
+    <None Remove="wwwroot\CUBE_FABRIC_4.obj" />
+    <None Remove="wwwroot\CUBE_FABRIC_5.gltf" />
+    <None Remove="wwwroot\CUBE_FABRIC_5.obj" />
+    <None Remove="wwwroot\CUBE_FABRIC_6.gltf" />
+    <None Remove="wwwroot\CUBE_FABRIC_6.obj" />
+    <None Remove="wwwroot\CUBE_FABRIC_7.gltf" />
+    <None Remove="wwwroot\CUBE_FABRIC_7.obj" />
+    <None Remove="wwwroot\CUBE_FABRIC_8.gltf" />
+    <None Remove="wwwroot\CUBE_FABRIC_8.obj" />
+    <None Remove="wwwroot\CUBE_FABRIC_9.gltf" />
+    <None Remove="wwwroot\CUBE_FABRIC_9.obj" />
+    <None Remove="wwwroot\diff.png" />
+    <None Remove="wwwroot\FABRIC.obj" />
+    <None Remove="wwwroot\loading.gif" />
+    <None Remove="wwwroot\norm.png" />
+    <None Remove="wwwroot\roug.png" />
+    <None Remove="wwwroot\SPHERE.obj" />
+    <None Remove="wwwroot\SPHERE_FABRIC.obj" />
+    <None Remove="wwwroot\TABLE.gltf" />
+    <None Remove="wwwroot\TABLE_FABRIC_0.gltf" />
+    <None Remove="wwwroot\TABLE_FABRIC_1.gltf" />
+    <None Remove="wwwroot\TABLE_FABRIC_2.gltf" />
+    <None Remove="wwwroot\TABLE_FABRIC_3.gltf" />
+    <None Remove="wwwroot\TABLE_FABRIC_4.gltf" />
+    <None Remove="wwwroot\TABLE_FABRIC_5.gltf" />
+    <None Remove="wwwroot\TABLE_FABRIC_6.gltf" />
+    <None Remove="wwwroot\TABLE_FABRIC_7.gltf" />
+    <None Remove="wwwroot\TABLE_FABRIC_8.gltf" />
+    <None Remove="wwwroot\TABLE_FABRIC_9.gltf" />
+    <None Remove="wwwroot\threejs\build\three.min.js" />
+    <None Remove="wwwroot\threejs\build\three.module.js" />
+    <None Remove="wwwroot\threejs\examples\js\controls\ArcballControls.js" />
+    <None Remove="wwwroot\threejs\examples\js\controls\DragControls.js" />
+    <None Remove="wwwroot\threejs\examples\js\controls\FirstPersonControls.js" />
+    <None Remove="wwwroot\threejs\examples\js\controls\FlyControls.js" />
+    <None Remove="wwwroot\threejs\examples\js\controls\OrbitControls.js" />
+    <None Remove="wwwroot\threejs\examples\js\controls\PointerLockControls.js" />
+    <None Remove="wwwroot\threejs\examples\js\controls\TrackballControls.js" />
+    <None Remove="wwwroot\threejs\examples\js\controls\TransformControls.js" />
+    <None Remove="wwwroot\threejs\examples\js\environments\DebugEnvironment.js" />
+    <None Remove="wwwroot\threejs\examples\js\environments\RoomEnvironment.js" />
+    <None Remove="wwwroot\threejs\examples\js\geometries\BoxLineGeometry.js" />
+    <None Remove="wwwroot\threejs\examples\js\geometries\ConvexGeometry.js" />
+    <None Remove="wwwroot\threejs\examples\js\geometries\DecalGeometry.js" />
+    <None Remove="wwwroot\threejs\examples\js\geometries\LightningStrike.js" />
+    <None Remove="wwwroot\threejs\examples\js\geometries\ParametricGeometries.js" />
+    <None Remove="wwwroot\threejs\examples\js\geometries\ParametricGeometry.js" />
+    <None Remove="wwwroot\threejs\examples\js\geometries\RoundedBoxGeometry.js" />
+    <None Remove="wwwroot\threejs\examples\js\geometries\TeapotGeometry.js" />
+    <None Remove="wwwroot\threejs\examples\js\geometries\TextGeometry.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\3DMLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\3MFLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\AMFLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\BasisTextureLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\BVHLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\ColladaLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\DDSLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\DRACOLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\EXRLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\FBXLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\FontLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\GCodeLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\GLTFLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\HDRCubeTextureLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\KMZLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\KTXLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\LDrawLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\LogLuvLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\LottieLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\LUT3dlLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\LUTCubeLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\LWOLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\MD2Loader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\MDDLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\MMDLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\MTLLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\NRRDLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\OBJLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\PCDLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\PDBLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\PLYLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\PRWMLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\PVRLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\RGBELoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\RGBMLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\STLLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\SVGLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\TDSLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\TGALoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\TIFFLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\TiltLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\TTFLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\VOXLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\VRMLLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\VTKLoader.js" />
+    <None Remove="wwwroot\threejs\examples\js\loaders\XYZLoader.js" />
+    <None Remove="wwwroot\viewer.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="CefSharp.BrowserSubprocess.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="clo\FABRIC.fab">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="main-32.ico" />
+    <Content Include="wwwroot\BALL.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BALL_FABRIC_0.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BALL_FABRIC_1.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BALL_FABRIC_2.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BALL_FABRIC_3.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BALL_FABRIC_4.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BALL_FABRIC_5.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BALL_FABRIC_6.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BALL_FABRIC_7.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BALL_FABRIC_8.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BALL_FABRIC_9.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BAR.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BAR_FABRIC_0.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BAR_FABRIC_1.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BAR_FABRIC_2.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BAR_FABRIC_3.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BAR_FABRIC_4.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BAR_FABRIC_5.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BAR_FABRIC_6.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BAR_FABRIC_7.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BAR_FABRIC_8.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\BAR_FABRIC_9.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\CUBE.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\CUBE_FABRIC_0.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\CUBE_FABRIC_1.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\CUBE_FABRIC_2.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\CUBE_FABRIC_3.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\CUBE_FABRIC_4.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\CUBE_FABRIC_5.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\CUBE_FABRIC_6.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\CUBE_FABRIC_7.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\CUBE_FABRIC_8.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\CUBE_FABRIC_9.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\diff.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\loading.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\norm.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\roug.png" />
+    <Content Include="wwwroot\TABLE.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\TABLE_FABRIC_0.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\TABLE_FABRIC_1.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\TABLE_FABRIC_2.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\TABLE_FABRIC_3.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\TABLE_FABRIC_4.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\TABLE_FABRIC_5.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\TABLE_FABRIC_6.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\TABLE_FABRIC_7.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\TABLE_FABRIC_8.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\TABLE_FABRIC_9.gltf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\threejs\build\three.min.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\threejs\examples\js\controls\OrbitControls.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\threejs\examples\js\environments\DebugEnvironment.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\threejs\examples\js\environments\RoomEnvironment.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\threejs\examples\js\geometries\DecalGeometry.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\threejs\examples\js\loaders\DRACOLoader.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\threejs\examples\js\loaders\GLTFLoader.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\threejs\examples\js\loaders\HDRCubeTextureLoader.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\threejs\examples\js\loaders\OBJLoader.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\threejs\examples\js\loaders\RGBELoader.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\viewer.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+</Project>

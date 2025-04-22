@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_LastSelectedProfileId>D:\Projects\dxweavinggenerator\WeavingGenerator\Properties\PublishProfiles\ClickOnceProfile.pubxml</_LastSelectedProfileId>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="DialogConfirmSave.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogDensity.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogCloFabric.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogExport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogJsonData.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogNewPattern.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogNewProject.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogNewWarpInfo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogNewYarn.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogPatternList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogPrintOption.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogProjectList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogUpload.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogWarpArray.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogWarpInfo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogWeftArray.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogWeftInfo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DialogYarnList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="WaitForm1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="WeaveViewer.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="XtraReportPrint.cs">
+      <SubType>XtraReport</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Update="XtraReportPrint.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>
