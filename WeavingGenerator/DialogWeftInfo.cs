@@ -704,7 +704,9 @@ namespace WeavingGenerator
 
                 int idx = info.Idx;
                 string name = info.Name;
-                string weight = info.Weight;
+                // fixed by ilkwon. 2025.04.23        
+                //string weight  = info.Weight;                 
+                double weight = double.TryParse(info.Weight, out var w) ? w : 0.0;
                 string unit = info.Unit;
                 string type = info.Type;
                 string textured = info.Textured;

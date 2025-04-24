@@ -703,7 +703,10 @@ namespace WeavingGenerator
 
                 int idx = info.Idx;
                 string name = info.Name;
-                string weight = info.Weight;
+                //string weight = info.Weight;
+                // fixed ilkwon. 2025.04. 23
+                // .net8.0에서 warnning 발생, initYarnList() 참고
+                double weight = double.TryParse(info.Weight, out var w) ? w : 0.0;
                 string unit = info.Unit;
                 string type = info.Type;
                 string textured = info.Textured;

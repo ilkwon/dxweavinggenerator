@@ -11,6 +11,8 @@ namespace WeavingGenerator
 {
     public class WebServer : IDisposable
     {
+        private CancellationTokenSource cts;
+
         //////////////////////////////////////////////////////////////////////////////////////////////////// Event
         ////////////////////////////////////////////////////////////////////////////////////////// Public
 
@@ -276,7 +278,7 @@ namespace WeavingGenerator
             {
                 foreach (Thread responseThread in this.responseThreadList)
                 {
-                    responseThread.Abort();
+                    responseThread.Join();
                 }
 
                 this.responseThreadList.Clear();
@@ -284,13 +286,16 @@ namespace WeavingGenerator
 
             this.responseThreadList = new List<Thread>();
 
+            // added ilkwon. 25.04.23
+            cts = new CancellationTokenSource();
 
-            this.listenThread = new Thread(new ThreadStart(Listen));
+            this.listenThread = new Thread(() => Listen(cts.Token));
 
             this.listenThread.IsBackground = true;
 
             this.listenThread.Start();
         }
+        //---------------------------------------------------------------------
 
         #endregion
         #region 중단하기 - Stop()
@@ -303,19 +308,24 @@ namespace WeavingGenerator
             this.isRunning = false;
 
 
-            if (this.listenThread != null)
+            if (cts != null)
             {
-                this.listenThread.Abort();
+                cts.Cancel(); // 모든 스레드에 종료 요청.
 
+                this.listenThread?.Join();                
                 this.listenThread = null;
-            }
+                
 
+                cts.Dispose();
+                cts = null;
+            }
 
             if (this.responseThreadList != null)
             {
-                foreach (Thread responseThread in this.responseThreadList)
+                foreach (Thread t in this.responseThreadList)
                 {
-                    responseThread.Abort();
+                    if (t.IsAlive)                    
+                        t.Join();                    
                 }
 
                 this.responseThreadList.Clear();
@@ -586,18 +596,19 @@ namespace WeavingGenerator
         /// <summary>
         /// 청취하기
         /// </summary>
-        private void Listen()
+        private void Listen(CancellationToken token)
         {
-            while (this.isRunning)
+            while (this.isRunning && !token.IsCancellationRequested)
             {
                 HttpListenerContext context = listener.GetContext();
 
                 Thread responseThread = new Thread(new ParameterizedThreadStart(Response));
 
                 responseThread.IsBackground = true;
-
-                this.responseThreadList.Add(responseThread);
-
+                lock (this.responseThreadList)
+                {
+                    this.responseThreadList.Add(responseThread);
+                }
                 responseThread.Start(new ThreadParameter { Context = context, Thread = responseThread });
             }
         }
@@ -662,7 +673,14 @@ namespace WeavingGenerator
             }
             finally
             {
-                try { this.responseThreadList.Remove(threadParameter.Thread); }catch(Exception) { }
+                try {
+                    lock (this.responseThreadList)
+                    {
+                        this.responseThreadList.Remove(threadParameter.Thread);
+                    }
+                } catch(Exception ex) {
+                    Console.WriteLine("[Webserver]: 응답 스레드 제거 후 오류" + ex.Message);
+                }
 
                 response.Close();
             }

@@ -21,8 +21,7 @@ namespace WeavingGenerator
     public partial class DialogPatternList : XtraForm
     {
         MainForm mainForm;
-
-        JObject objPattern;
+        
         DataTable tb = new DataTable();
 
         string COLUMN_NAME = "조직명";

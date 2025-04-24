@@ -452,9 +452,7 @@ namespace WeavingGenerator
 
             EmptySpaceItem emptyItem;
             //Font font = new Font();
-
-            TableLayoutPanel tlp;
-
+            
             layoutControl_Property.BeginUpdate();
             //layoutControl_Property.LookAndFeel.UseDefaultLookAndFeel = false;
             ///////////////////////////////////////////////////////////////////
@@ -1896,7 +1894,7 @@ namespace WeavingGenerator
                 }
                 catch (Exception ex)
                 {
-
+                    Console.WriteLine("[MainForm] server.Stop() "+  ex.Message);                    
                 }
             }
 
@@ -1928,20 +1926,26 @@ namespace WeavingGenerator
         // 3D Viewer Reload Thread
         ///////////////////////////////////////////////////////////////////////
         Thread threadGenerateImage = null;
-
+        CancellationTokenSource ctsGenerateImage;
+        
         public void ThreadViewerRepaint()
         {
-            if (threadGenerateImage != null && threadGenerateImage.IsAlive == true)
+            if (ctsGenerateImage!=null)
             {
-                threadGenerateImage.Abort();
-                threadGenerateImage = null;
+                ctsGenerateImage.Cancel();
+                threadGenerateImage?.Join();
+                ctsGenerateImage.Dispose();
+                ctsGenerateImage = null;
             }
-            threadGenerateImage = new Thread(new ThreadStart(ThreadRunGenerateImage));
+
+            ctsGenerateImage = new CancellationTokenSource();
+            threadGenerateImage = new Thread(() => ThreadRunGenerateImage(ctsGenerateImage.Token));
             threadGenerateImage.Start();
             //Trace.WriteLine("thread_generate START............ ");
         }
-        private void ThreadRunGenerateImage()
+        private void ThreadRunGenerateImage(CancellationToken token)
         {
+            if (token.IsCancellationRequested) return;
             if (IsLoaded3DObject == true)
             {
                 if (this.InvokeRequired) // 현재 스레드가 this(Form1) 요소를 만든 스레드를 경유해야 하는지 확인
@@ -1959,6 +1963,7 @@ namespace WeavingGenerator
                         }));
                 }
             }
+        
         }
 
         ///////////////////////////////////////////////////////////////////////
@@ -2678,9 +2683,9 @@ namespace WeavingGenerator
             {
                 projectReg_dt = DateTime.ParseExact(projectReg_dt, "yyyyMMddHHmmss", null).ToString("yyyy-MM-dd HH:mm:ss");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-
+                
             }
 
             //printFilePath = MainForm.WWWROOT_PATH + "\\diff_" + SELECTED_IDX + "_Print.png";
@@ -3837,11 +3842,6 @@ namespace WeavingGenerator
         }
 
 
-
-
-
-
-
         ///////////////////////////////////////////////////////////////////////
         // 시작 - Thread
         ///////////////////////////////////////////////////////////////////////
@@ -3872,50 +3872,81 @@ namespace WeavingGenerator
             }
         }
 
-
-        Thread threadLoadedObject = null;
-
+        //---------------------------------------------------------------------
+        /// <summary>
+        /// motify by ilkwon 2025.04.23 기존의 코드는 닷넷5로 작성되었으나 
+        /// ms의 지원이 끝난관계로  닷넷5에서 닷넷8로 업그레이드.
+        /// 닷넷 5이후 Thread  처리시 Abort는 금지되었다.
+        /// NET Core 및 .NET 5 이상에서 아예 지원되지 않음.
+        /// 안전쓰레드 : Cancel Token 발행 -> Join -> Dispose
+        /// </summary>
+        private Thread threadLoadedObject;
+        private CancellationTokenSource ctsLoadedObject;
         public void Thread3DViewerLoadedObject()
         {
-            if (threadLoadedObject != null && threadLoadedObject.IsAlive == true)
-            {
-                threadLoadedObject.Abort();
-                threadLoadedObject = null;
-            }
+            if (threadLoadedObject != null && threadLoadedObject.IsAlive)
+                return; // 이미 실행 중이면 다시 실행하지 않음
 
-            threadLoadedObject = new Thread(new ThreadStart(ThreadRunLoadedObject));
+            if (ctsLoadedObject != null)
+            {
+                ctsLoadedObject.Cancel();
+                threadLoadedObject?.Join();
+                ctsLoadedObject.Dispose();
+                ctsLoadedObject = null;
+            }
+            
+            ctsLoadedObject = new CancellationTokenSource(); // 새 토큰 생성
+            threadLoadedObject = new Thread(() => ThreadRunLoadedObject(ctsLoadedObject.Token));
             threadLoadedObject.Start();
         }
-        private void ThreadRunLoadedObject()
-        {
-            while (IsLoaded3DObject == false)
-            {
-                Thread.Sleep(1000);
-                var task = weave3DViewer.EvaluateScriptAsync("IsLoadedObject();");
-                task.Wait();
-                JavascriptResponse response = task.Result;
-                if (!string.IsNullOrEmpty(response.Result.ToString()))
-                {
-                    IsLoaded3DObject = true;
-                    //Trace.WriteLine(">>>>>>>>>>>>>>>>>>>>>>>>>> Loaded Object : " + response.Result.ToString());
-                    if (this.InvokeRequired) // 현재 스레드가 this(Form1) 요소를 만든 스레드를 경유해야 하는지 확인
-                    {
-                        this.BeginInvoke(
-                            (System.Action)(() =>
-                            {
-                                CloseProgressForm();
-                                if (prjList.Count <= 0)
-                                {
-                                    DialogNewProject dialog = new DialogNewProject(this);
-                                    dialog.StartPosition = FormStartPosition.Manual;
-                                    dialog.Location = GetChildFormLocation();
-                                    dialog.dialogNewProjectEventHandler += new DialogNewProjectEventHandler(EventNewProject);
-                                    dialog.ShowDialog();
-                                }
-                            }));
-                    }
 
+        //---------------------------------------------------------------------
+        private void ThreadRunLoadedObject(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested && IsLoaded3DObject == false)
+            {                
+                Thread.Sleep(1000);
+                try
+                {
+                    var task = weave3DViewer.EvaluateScriptAsync("IsLoadedObject();");
+                    task.Wait(token);
+                    JavascriptResponse response = task.Result;
+                    if (!string.IsNullOrEmpty(response.Result.ToString()))
+                    {
+                        IsLoaded3DObject = true;
+                        //Trace.WriteLine(">>>>>>>>>>>>>>>>>>>>>>>>>> Loaded Object : " + response.Result.ToString());
+                        if (this.InvokeRequired) // 현재 스레드가 this(Form1) 요소를 만든 스레드를 경유해야 하는지 확인
+                        {
+                            this.BeginInvoke(
+                                (System.Action)(() =>
+                                {
+                                    CloseProgressForm();
+                                    if (prjList.Count <= 0)
+                                    {
+                                        DialogNewProject dialog = new DialogNewProject(this);
+                                        dialog.StartPosition = FormStartPosition.Manual;
+                                        dialog.Location = GetChildFormLocation();
+                                        dialog.dialogNewProjectEventHandler += new DialogNewProjectEventHandler(EventNewProject);
+                                        dialog.ShowDialog();
+                                    }
+
+                                    // ❗ 단 한 번만 호출됨
+                                    weave3DViewer.ExecuteScriptAsync($"ReloadMap2('{SELECTED_IDX}', '{nCall++}');");
+                                }));
+                        }
+
+                        break;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    // 정상적인 Cancel
                     break;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("[ThreadRunLoadedObject] 예외 발생: " + ex.Message);
+                    break; // 반복 중단
                 }
             }
         }
@@ -4179,8 +4210,6 @@ namespace WeavingGenerator
             return new SQLiteConnection(connStr);
         }
     }
-
-
 
     public class FormFile
     {

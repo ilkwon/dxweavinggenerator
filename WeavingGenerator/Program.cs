@@ -16,7 +16,8 @@ namespace WeavingGenerator
         static void Main()
         {
             //DevExpress.LookAndFeel.UserLookAndFeel.Default.SkinName = "DevExpress Dark Style";
-            DevExpress.LookAndFeel.UserLookAndFeel.Default.SkinName = SkinStyle.Basic;
+            //DevExpress.LookAndFeel.UserLookAndFeel.Default.SkinName = SkinStyle.Basic;
+            DevExpress.LookAndFeel.UserLookAndFeel.Default.SkinName = SkinStyle.VisualStudio2013Blue;
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
