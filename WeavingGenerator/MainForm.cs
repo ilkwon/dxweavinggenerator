@@ -1,6 +1,7 @@
 ﻿using CefSharp;
 using DevExpress.ClipboardSource.SpreadsheetML;
 using DevExpress.DataAccess.Json;
+using DevExpress.DataProcessing.InMemoryDataProcessor;
 using DevExpress.Utils.Helpers;
 using DevExpress.XtraDiagram.Base;
 using DevExpress.XtraEditors;
@@ -11,6 +12,7 @@ using DevExpress.XtraLayout.Utils;
 using DevExpress.XtraPrinting.Preview;
 using DevExpress.XtraSplashScreen;
 using DevExpress.XtraWaitForm;
+using Jm.DBConn;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -36,7 +38,7 @@ namespace WeavingGenerator
         /// DB URL
         ///////////////////////////////////////////////////////////////////////
         string connStr;
-
+        public DBConn db;
         ///////////////////////////////////////////////////////////////////////
         /// Save Process
         ///////////////////////////////////////////////////////////////////////
@@ -93,6 +95,9 @@ namespace WeavingGenerator
             // Exit Event
             ///////////////////////////////////////////////////////////////////
             this.FormClosing += MainForm_FormClosing;
+
+            //DB 커넥션 세팅
+            db = DBConn.Instance;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -1047,9 +1052,9 @@ namespace WeavingGenerator
                     // 생성
                     Directory.CreateDirectory(szExecutablePath);
                 }
-
+                               
                 // Database 지정할 경로 + Database 이름
-                string szDBFile = String.Format(@"{0}\{1}", szExecutablePath, szDBFileName);
+                string szDBFile = String.Format(@"{0}\{1}", szExecutablePath, szDBFileName);                
 
                 // DB정보 
                 connStr = string.Format("Data Source={0};", szDBFile);
@@ -1062,78 +1067,38 @@ namespace WeavingGenerator
                 {
                     SQLiteConnection.CreateFile(szDBFile);
 
-                    string strsql = "";
-                    SQLiteCommand cmd;
-
-
-                    conn = new SQLiteConnection(connStr);
-                    conn.Open();
-
-
+                    db.Init(null, szDBFile, "Resource/sql_acc.xml", null, null, null);
                     ///////////////////////////////////////////////////////////
                     // APP
                     ///////////////////////////////////////////////////////////
-                    strsql = "CREATE TABLE IF NOT EXISTS TB_APP ( " +
-                        "   APPID TEXT, " +
-                        "   REG_DT TEXT " +
-                        ") ";
-                    cmd = new SQLiteCommand(strsql, conn);
-                    cmd.ExecuteNonQuery();
 
+                    DBConn.Instance.create("create_tb_app");
 
                     this.APPID = Util.GenerateUUID();
                     Trace.WriteLine("strUUID : " + this.APPID);
 
-                    strsql =
-                        "INSERT INTO TB_APP " +
-                        "(" +
-                        "   APPID," +
-                        "   REG_DT" +
-                        ") " +
-                        "VALUES " +
-                        "(" +
-                        "   '" + this.APPID + "', " +
-                        "   '" + reg_dt + "' " +
-                        ")" +
-                        ";";
-                    cmd = new SQLiteCommand(strsql, conn);
-                    cmd.ExecuteNonQuery();
+                    // INSERT
+                    Dictionary<string, object> param = new Dictionary<string, object>
+                    {
+                        { "@APPID", this.APPID },
+                        { "@REG_DT", reg_dt }
+                    };
+                    DBConn.Instance.insert("insert_tb_app", param);
 
 
 
                     ///////////////////////////////////////////////////////////
                     // TB_PROJECT
                     ///////////////////////////////////////////////////////////
-                    strsql = "CREATE TABLE IF NOT EXISTS TB_PROJECT ( " +
-                        "   IDX INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        "   NAME TEXT, " +
-                        "   PROJECT_DATA TEXT, " +
-                        "   REG_DT TEXT " +
-                        ") ";
-                    cmd = new SQLiteCommand(strsql, conn);
-                    cmd.ExecuteNonQuery();
-
+                    DBConn.Instance.create("create_tb_project");
 
 
                     ///////////////////////////////////////////////////////////
                     // TB_YARN
                     ///////////////////////////////////////////////////////////
-                    strsql = "CREATE TABLE IF NOT EXISTS TB_YARN ( " +
-                        "   IDX INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        "   NAME TEXT, " +
-                        "   WEIGHT TEXT, " +
-                        "   UNIT TEXT, " +
-                        "   TYPE TEXT, " +
-                        "   TEXTURED TEXT, " +
-                        "   IMAGE TEXT, " +
-                        "   METAL TEXT, " +
-                        "   USE_YN TEXT DEFAULT 'Y', " +
-                        "   REG_DT TEXT " +
-                        ") ";
-                    cmd = new SQLiteCommand(strsql, conn);
-                    cmd.ExecuteNonQuery();
+                    DBConn.Instance.create("create_tb_yarn");
 
-                    conn.Close();
+                    //conn.Close();
 
                     ///////////////////////////////////////////////////////////
                     //
@@ -1141,9 +1106,15 @@ namespace WeavingGenerator
 
                 }
 
+                // ilkwon test code begin ----------------------------------------
+                
+                //var result = DBConn.Instance.select("selectAllProjects", null);
+                //var list = result.To<ProjectData>();
+                
+                int xxx = 9;
+
+                // ilkwon test code end -----------------------------------------
                 this.APPID = GetDAOAPPID();
-
-
             }
             catch (Exception ex)
             {

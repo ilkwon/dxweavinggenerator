@@ -520,6 +520,7 @@
     <None Remove="CefSharp.BrowserSubprocess.exe" />
     <None Remove="clo\FABRIC.fab" />
     <None Remove="Resource\json\default_project.json" />
+    <None Remove="Resource\sql_acc.xml" />
     <None Remove="wwwroot\BALL.gltf" />
     <None Remove="wwwroot\BALL_FABRIC_0.gltf" />
     <None Remove="wwwroot\BALL_FABRIC_1.gltf" />
@@ -662,6 +663,9 @@
     </Content>
     <Content Include="main-32.ico" />
     <Content Include="Resource\json\default_project.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resource\sql_acc.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="wwwroot\BALL.gltf">

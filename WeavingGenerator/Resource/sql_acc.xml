@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<sqlMap namespace="Payment">
+	<create id="create_tb_app">
+		CREATE TABLE IF NOT EXISTS TB_APP (
+		APPID TEXT,
+		REG_DT TEXT
+		);
+	</create>
+
+	<insert id="insert_tb_app">
+		INSERT INTO TB_APP (
+		APPID,
+		REG_DT
+		) VALUES (
+		@APPID,
+		@REG_DT
+		);
+	</insert>
+
+	<create id="create_tb_project">
+		CREATE TABLE IF NOT EXISTS TB_PROJECT (
+		IDX INTEGER PRIMARY KEY AUTOINCREMENT,
+		NAME TEXT,
+		PROJECT_DATA TEXT,
+		REG_DT TEXT
+		);
+	</create>
+
+	<create id="create_tb_yarn">
+		CREATE TABLE IF NOT EXISTS TB_YARN (
+		IDX INTEGER PRIMARY KEY AUTOINCREMENT,
+		NAME TEXT,
+		WEIGHT TEXT,
+		UNIT TEXT,
+		TYPE TEXT,
+		TEXTURED TEXT,
+		IMAGE TEXT,
+		METAL TEXT,
+		USE_YN TEXT DEFAULT 'Y',
+		REG_DT TEXT
+		);
+	</create>
+
+</sqlMap>
+
+
