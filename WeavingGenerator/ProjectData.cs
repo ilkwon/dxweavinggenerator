@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -320,6 +321,7 @@ namespace WeavingGenerator
     public class Warp
     {
         private int density; // 밀도
+        private int warpCount = 0;
         List<WInfo> wInfoList = new List<WInfo>();
         List<WArray> wArrayList = new List<WArray>();
         List<WRepeat> wRepeatList = new List<WRepeat>();
@@ -330,6 +332,32 @@ namespace WeavingGenerator
             set { density = value; }
         }
 
+        public int WarpCount
+        {
+            get { return warpCount; }
+            set { warpCount = value; }
+        }
+
+        [JsonProperty("WarpInfoList")]
+        public List<WInfo> WarpInfoList
+        {
+            get { return wInfoList; }
+            set { wInfoList = value; }
+        }
+
+        [JsonProperty("WarpArray")]
+        public List<WArray> WarpArray
+        {
+            get { return wArrayList; }
+            set { wArrayList = value; }
+        }
+
+        [JsonProperty("Repeat")]
+        public List<WRepeat> WarpRepeat
+        {
+            get { return wRepeatList; }
+            set { wRepeatList = value; }
+        }
 
         public void AddWInfo(WInfo wInfo)
         {
@@ -490,6 +518,8 @@ namespace WeavingGenerator
     public class Weft
     {
         private int density;
+        private int weftCount = 0;
+
         List<WInfo> wInfoList = new List<WInfo>();
         List<WArray> wArrayList = new List<WArray>();
         List<WRepeat> wRepeatList = new List<WRepeat>();
@@ -498,6 +528,34 @@ namespace WeavingGenerator
         {
             get { return density; }
             set { density = value; }
+        }
+
+        [JsonProperty("WeftCount")]
+        public int WeftCount
+        {
+            get { return weftCount; }
+            set { weftCount = value; }
+         }
+
+        [JsonProperty("WeftInfoList")]
+        public List<WInfo> WeftInfoList
+        {
+            get { return wInfoList; }
+            set { wInfoList = value; }
+        }
+
+        [JsonProperty("WeftArray")]
+        public List<WArray> WeftArray
+        {
+            get { return wArrayList; }
+            set { wArrayList = value; }
+        }
+
+        [JsonProperty("Repeat")]
+        public List<WRepeat> WeftRepeat
+        {
+            get { return wRepeatList; }
+            set { wRepeatList = value; }
         }
 
         public void AddWInfo(WInfo wInfo)

@@ -1,0 +1,99 @@
+{
+  "Name": "",
+  "ProjectID": "",
+  "OptionMetal": "0",
+  "Memo": "",
+  "YarnDyed": "N",
+  "DyeColor": "",
+  "Reg_dt": "",
+  "Pattern": {
+    "Idx": 0,
+    "Name": "PLAIN",
+    "XLength": 2,
+    "YLength": 2,
+    "Data": [
+      [ 0, 1 ],
+      [ 1, 0 ]
+    ]
+  },
+  "Warp": {
+    "Density": 50,
+    "WarpCount": 2,
+    "WarpInfoList": [
+      {
+        "Idx": 0,
+        "Name": "경사#1",
+        "HexColor": "4D4D4D"
+      },
+      {
+        "Idx": 1,
+        "Name": "경사#2",
+        "HexColor": "4D4D4D"
+      }
+    ],
+    "WarpArray": [
+      {
+        "Idx": 1,
+        "Count": 1
+      },
+      {
+        "Idx": 0,
+        "Count": 1
+      },
+      {
+        "Idx": 1,
+        "Count": 1
+      },
+      {
+        "Idx": 0,
+        "Count": 1
+      }
+    ],
+    "Repeat": []
+  },
+  "Weft": {
+    "Density": 50,
+    "WeftCount": 2,
+    "WeftInfoList": [
+      {
+        "Idx": 0,
+        "Name": "위사#1",
+        "HexColor": "FFFFFF"
+      },
+      {
+        "Idx": 1,
+        "Name": "위사#2",
+        "HexColor": "FFFFFF"
+      }
+    ],
+    "WeftArray": [
+      {
+        "Idx": 0,
+        "Count": 1
+      },
+      {
+        "Idx": 1,
+        "Count": 1
+      },
+      {
+        "Idx": 0,
+        "Count": 1
+      },
+      {
+        "Idx": 1,
+        "Count": 1
+      }
+    ]
+  },
+  "PhysicalProperty": {
+    "BendingWeft": 0,
+    "BendingWarp": 0,
+    "InternalDamping": 0,
+    "Friction": 0,
+    "Density": 0,
+    "StretchWeft": 0,
+    "StretchWarp": 0,
+    "BucklingStiffnessWeft": 0,
+    "BucklingStiffnessWarp": 0
+  }
+}

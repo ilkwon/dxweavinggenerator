@@ -564,7 +564,8 @@ namespace WeavingGenerator
             //g.DrawImage(canvas, OFFSET_X + canvas.Width, OFFSET_X + canvas.Height);
         }
 
-        public void Scroll()
+        //public void Scroll()
+        public new void Scroll() // by ilkwon 24.04.25
         {
             //this.Location = new Point(0, 0);
             //2025-01-20 soonchol

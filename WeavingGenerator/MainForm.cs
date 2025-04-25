@@ -11,6 +11,7 @@ using DevExpress.XtraLayout.Utils;
 using DevExpress.XtraPrinting.Preview;
 using DevExpress.XtraSplashScreen;
 using DevExpress.XtraWaitForm;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
@@ -3142,13 +3144,6 @@ namespace WeavingGenerator
             ThreadViewerRepaint();
         }
 
-
-
-
-
-
-
-
         public static ProjectData ParseProjectData(string json)
         {
             if (string.IsNullOrEmpty(json) == true)
@@ -3745,102 +3740,29 @@ namespace WeavingGenerator
             //Trace.WriteLine("SAVE====================>\r\n" + json);
             return json;
         }
+
+        //---------------------------------------------------------------------
         public string CreateDefaultJsonProjectData(string name)
         {
-            string PROJECTID = Util.GenerateUUID();
+            string path = Path.Combine(Application.StartupPath, "Resource", "json", "default_project.json");
+            string jsonTemplate = File.ReadAllText(path, Encoding.UTF8);
 
-            DateTime dt = DateTime.Now;
-            string reg_dt = dt.ToString("yyyyMMddhhmmss");
-
-            string memo = Util.Base64Encode("중량:\r\n폭:\r\n혼용률:\r\n");
-            string json = "" +
-                "{ " +
-                "    \"Name\":\"" + name + "\", " +
-                "    \"ProjectID\":\"" + PROJECTID + "\", " +
-                "    \"OptionMetal\":\"0\", " +
-                "    \"Memo\":\"" + memo + "\", " +
-                //2025-02-05 soonchol
-                "    \"YarnDyed\":\"" + "N" + "\",  " +
-                "    \"DyeColor\":\"" + Default_DyeColor + "\",  " +
-                "    \"Reg_dt\":\"" + reg_dt + "\",  " +
-                "    \"Pattern\":{ " +
-                "        \"Idx\":0, " +
-                //2025-01-24 soonchol
-                //"        \"Name\":\"Plain weave\", " +
-                "        \"Name\":\"PLAIN\", " +
-                "        \"XLength\":2, " +
-                "        \"YLength\":2, " +
-                "        \"Data\":[ " +
-                "            [0, 1], " +
-                "            [1, 0] " +
-                "        ] " +
-                "    }, " +
-                "    \"Warp\":{ " +
-                "        \"Density\":50, " +
-                "        \"WarpCount\":2, " +
-                "        \"WarpInfoList\":[ " +
-                "            { " +
-                "                \"Idx\":0, " +
-                "                \"Name\":\"경사#1\",  " +
-                "                \"HexColor\":\"4D4D4D\" " +
-                "            }, " +
-                "            { " +
-                "                \"Idx\":1, " +
-                "                \"Name\":\"경사#2\",  " +
-                "                \"HexColor\":\"4D4D4D\" " +
-                "            } " +
-                "        ], " +
-                "        \"WarpArray\":[" +
-                "           { \"Idx\":1,\"Count\":1 }," +
-                "           { \"Idx\":0,\"Count\":1 }," +
-                "           { \"Idx\":1,\"Count\":1 }," +
-                "           { \"Idx\":0,\"Count\":1 } " +
-                "       ]," +
-                "        \"Repeat\":[" +
-                "       ]," +
-                "    }, " +
-                "    \"Weft\":{ " +
-                "        \"Density\":50, " +
-                "        \"WeftCount\":2, " +
-                "        \"WeftInfoList\":[ " +
-                "            { " +
-                "                \"Idx\":0, " +
-                "                \"Name\":\"위사#1\",  " +
-                "                \"HexColor\":\"FFFFFF\" " +
-                "            }, " +
-                "            { " +
-                "                \"Idx\":1, " +
-                "                \"Name\":\"위사#2\",  " +
-                "                \"HexColor\":\"FFFFFF\" " +
-                "            } " +
-                "        ], " +
-                "        \"WeftArray\":[" +
-                "           { \"Idx\":0,\"Count\":1 }," +
-                "           { \"Idx\":1,\"Count\":1 }," +
-                "           { \"Idx\":0,\"Count\":1 }," +
-                "           { \"Idx\":1,\"Count\":1 } " +
-                "       ]" +
-                "    }, " +
-                "    \"PhysicalProperty\":{ " +
-                "        \"BendingWeft\":0, " +
-                "        \"BendingWarp\":0, " +
-                "        \"InternalDamping\":0, " +
-                "        \"Friction\":0, " +
-                "        \"Density\":0, " +
-                "        \"StretchWeft\":0, " +
-                "        \"StretchWarp\":0, " +
-                "        \"BucklingStiffnessWeft\":0, " +
-                "        \"BucklingStiffnessWarp\":0 " +
-                "    } " +
-                "}";
-            return json;
+            var project = JsonConvert.DeserializeObject<ProjectData>(jsonTemplate);
+            project.Name = name;
+            project.ProjectID = Util.GenerateUUID();
+            project.Memo = Util.Base64Encode("중량:\r\n폭:\r\n혼용률:\r\n");
+            project.DyeColor = Default_DyeColor;
+            project.Reg_dt = DateTime.Now.ToString("yyyyMMddhhmmss");
+            
+            return JsonConvert.SerializeObject(project, Formatting.Indented);
         }
+        //---------------------------------------------------------------------
         public ProjectData CreateDefaultProjectData(string name)
         {
             string json = this.CreateDefaultJsonProjectData(name);
             return ParseProjectData(json);
         }
-
+        //---------------------------------------------------------------------
 
         ///////////////////////////////////////////////////////////////////////
         // 시작 - Thread
