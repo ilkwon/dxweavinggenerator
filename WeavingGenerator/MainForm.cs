@@ -195,9 +195,6 @@ namespace WeavingGenerator
             }
         }
 
-
-
-
         // 프로젝트 버튼
         public class ProjectButton : CheckButton
         {
@@ -270,11 +267,9 @@ namespace WeavingGenerator
             {
                 SplashScreenManager.ShowForm(this, typeof(WaitForm1), true, true, false);
             }
-
         }
         private void CloseProgressForm()
         {
-
             SplashScreenManager.CloseForm(false);
         }
 
@@ -1036,8 +1031,6 @@ namespace WeavingGenerator
 
         private void InitDAO()
         {
-
-            SQLiteConnection conn = null;
             try
             {
                 // 게시 제품이름
@@ -1056,9 +1049,6 @@ namespace WeavingGenerator
                 // Database 지정할 경로 + Database 이름
                 string szDBFile = String.Format(@"{0}\{1}", szExecutablePath, szDBFileName);                
 
-                // DB정보 
-                connStr = string.Format("Data Source={0};", szDBFile);
-
                 DateTime dt = DateTime.Now;
                 string reg_dt = dt.ToString("yyyyMMddhhmmss");
 
@@ -1071,7 +1061,6 @@ namespace WeavingGenerator
                     ///////////////////////////////////////////////////////////
                     // APP
                     ///////////////////////////////////////////////////////////
-
                     DBConn.Instance.create("create_tb_app");
 
                     this.APPID = Util.GenerateUUID();
@@ -1080,15 +1069,13 @@ namespace WeavingGenerator
                     // INSERT
                     Dictionary<string, object> param = new Dictionary<string, object>
                     {
-                        { "@APPID", this.APPID },
-                        { "@REG_DT", reg_dt }
+                        { "@appid", this.APPID },
+                        { "@reg_dt", reg_dt }
                     };
                     DBConn.Instance.insert("insert_tb_app", param);
 
-
-
                     ///////////////////////////////////////////////////////////
-                    // TB_PROJECT
+                    // TB_PROJECT                    
                     ///////////////////////////////////////////////////////////
                     DBConn.Instance.create("create_tb_project");
 
@@ -1097,21 +1084,9 @@ namespace WeavingGenerator
                     // TB_YARN
                     ///////////////////////////////////////////////////////////
                     DBConn.Instance.create("create_tb_yarn");
-
-                    //conn.Close();
-
-                    ///////////////////////////////////////////////////////////
-                    //
-                    ///////////////////////////////////////////////////////////
-
                 }
 
-                // ilkwon test code begin ----------------------------------------
-                
-                //var result = DBConn.Instance.select("selectAllProjects", null);
-                //var list = result.To<ProjectData>();
-                
-                int xxx = 9;
+                db.Init(null, szDBFile, "Resource/sql_acc.xml", null, null, null);                
 
                 // ilkwon test code end -----------------------------------------
                 this.APPID = GetDAOAPPID();
@@ -1121,124 +1096,65 @@ namespace WeavingGenerator
                 Trace.Write(ex.ToString());
                 XtraMessageBox.Show(ex.Message);
             }
-            finally
-            {
-                try { if (conn != null) conn.Close(); } catch { }
-            }
+            
         }
+
+        //-------------------------------------------------------------------
         private string GetDAOAPPID()
         {
             string appid = "";
-            SQLiteConnection conn = null;
-            SQLiteCommand cmd = null;
-            SQLiteDataReader rdr = null;
-            string strsql = "";
-            try
-            {
-                conn = new SQLiteConnection(connStr);
-                conn.Open();
 
-                strsql =
-                    "SELECT " +
-                    "   APPID " +
-                    "FROM TB_APP " +
-                    "; ";
-                cmd = new SQLiteCommand(strsql, conn);
-                rdr = cmd.ExecuteReader();
-                if (rdr.Read())
-                {
-                    appid = (rdr["APPID"].ToString());
-                }
-
-            }
-            catch (Exception ex)
+            Dictionary<string, object> paramMap = new Dictionary<string, object>();
+            DataResult dataResult = DBConn.Instance.select("select_tb_appid", paramMap);            
+            if (dataResult != null && dataResult.Count > 0)
             {
-                Trace.Write(ex.ToString());
-                XtraMessageBox.Show("Msg Box Title");
-            }
-            finally
-            {
-                try { if (rdr != null) rdr.Close(); } catch { }
-                try { if (conn != null) conn.Close(); } catch { }
-            }
+                appid = dataResult.Data[0]["APPID"].ToString();
+            }                           
             return appid;
         }
+
+        //-------------------------------------------------------------------
         public ProjectData GetDAOProjectData(int idx)
         {
             ProjectData data = null;
 
-            SQLiteConnection conn = null;
-            SQLiteCommand cmd = null;
-            SQLiteDataReader rdr = null;
-            string strsql = "";
-            try
+            Dictionary<string, object> paramMap = new Dictionary<string, object>();
+            paramMap.Add("IDX", idx);
+            DataResult dataResult = DBConn.Instance.select("select_tb_project_by_idx", paramMap);
+            if (dataResult != null && dataResult.Count > 0)
             {
-                conn = new SQLiteConnection(connStr);
-                conn.Open();
+                int projectIdx = Convert.ToInt32(dataResult.Data[0]["IDX"]);
+                string projectName = dataResult.Data[0]["NAME"].ToString();
+                string projectData = dataResult.Data[0]["PROJECT_DATA"].ToString();
 
-                strsql =
-                    "SELECT " +
-                    "   IDX, " +
-                    "   NAME, " +
-                    "   PROJECT_DATA " +
-                    "FROM TB_PROJECT " +
-                    "WHERE IDX = " + idx + " ; ";
-                cmd = new SQLiteCommand(strsql, conn);
-                rdr = cmd.ExecuteReader();
-                if (rdr.Read())
-                {
-                    string STR_IDX = (rdr["IDX"].ToString());
-                    string NAME = (rdr["NAME"].ToString());
-                    string PROJECT_DATA = (rdr["PROJECT_DATA"].ToString());
+                data = MainForm.ParseProjectData(projectData);
+                data.Idx = idx;
+                Console.WriteLine($"[프로젝트] IDX: {projectIdx}, NAME: {projectName}");
+            }
 
-                    data = MainForm.ParseProjectData(PROJECT_DATA);
-                    data.Idx = idx;
-                }
-            }
-            catch (Exception ex)
-            {
-                Trace.Write(ex.ToString());
-                XtraMessageBox.Show("Error", "Msg Box Title");
-            }
-            finally
-            {
-                try { if (rdr != null) rdr.Close(); } catch { }
-                try { if (conn != null) conn.Close(); } catch { }
-            }
             return data;
         }
+
+        //-------------------------------------------------------------------
         public List<ProjectData> ListDAOProjectData()
         {
             List<ProjectData> list = new List<ProjectData>();
-
-            SQLiteConnection conn = null;
-            SQLiteCommand cmd = null;
-            SQLiteDataReader rdr = null;
-            string strsql = "";
+            
             try
             {
-                conn = new SQLiteConnection(connStr);
-                conn.Open();
-
-                strsql =
-                    "SELECT " +
-                    "   IDX, " +
-                    "   NAME, " +
-                    "   PROJECT_DATA " +
-                    "FROM TB_PROJECT " +
-                    "ORDER BY IDX DESC ; ";
-                cmd = new SQLiteCommand(strsql, conn);
-                rdr = cmd.ExecuteReader();
-                while (rdr.Read())
+                Dictionary<string, object> paramMap = new Dictionary<string, object>(); // 파라미터 없음
+                DataResult dataResult = DBConn.Instance.select("select_project_list", paramMap);
+                if (dataResult != null && dataResult.Count > 0)
                 {
-                    string STR_IDX = (rdr["IDX"].ToString());
-                    string NAME = (rdr["NAME"].ToString());
-                    string PROJECT_DATA = (rdr["PROJECT_DATA"].ToString());
-                    int idx = Convert.ToInt32(STR_IDX);
+                    foreach (var row in dataResult.Data)
+                    {
+                        int idx = Convert.ToInt32(row["IDX"]);
+                        string projectDataString = row["PROJECT_DATA"].ToString();
 
-                    ProjectData data = MainForm.ParseProjectData(PROJECT_DATA);
-                    data.Idx = idx;
-                    list.Add(data);
+                        ProjectData data = MainForm.ParseProjectData(projectDataString);
+                        data.Idx = idx;
+                        list.Add(data);
+                    }
                 }
             }
             catch (Exception ex)
@@ -1246,52 +1162,34 @@ namespace WeavingGenerator
                 Trace.Write(ex.ToString());
                 XtraMessageBox.Show("Error", "Msg Box Title");
             }
-            finally
-            {
-                try { if (rdr != null) rdr.Close(); } catch { }
-                try { if (conn != null) conn.Close(); } catch { }
-            }
+
             return list;
         }
+
+        //-------------------------------------------------------------------
         private int SaveDAOProjectData(string name, string projectData)
         {
-            SQLiteConnection conn = null;
-            SQLiteCommand cmd = null;
-            SQLiteDataReader rdr = null;
-            string strsql = "";
             int idx = -1;
-
             DateTime dt = DateTime.Now;
-            string reg_dt = dt.ToString("yyyyMMddhhmmss");
+            string reg_dt = dt.ToString("yyyyMMddHHmmss"); // HHmmss 대문자(HH)로 24시간 표기
 
             try
             {
-                conn = new SQLiteConnection(connStr);
-                conn.Open();
+                // INSERT
+                Dictionary<string, object> paramMap = new Dictionary<string, object>();
+                paramMap.Add("name", name);
+                paramMap.Add("reg_dt", reg_dt);
+                paramMap.Add("project_data", projectData);
 
-                strsql =
-                    "INSERT INTO TB_PROJECT " +
-                    "(" +
-                    "   NAME, " +
-                    "   REG_DT, " +
-                    "   PROJECT_DATA" +
-                    ") " +
-                    "VALUES " +
-                    "(" +
-                    "   '" + name + "', " +
-                    "   '" + reg_dt + "', " +
-                    "   '" + projectData + "'" +
-                    ") " +
-                    ";";
-                cmd = new SQLiteCommand(strsql, conn);
-                cmd.ExecuteNonQuery();
+                DBConn.Instance.insert("insert_tb_project", paramMap);
 
-                strsql = "SELECT LAST_INSERT_ROWID() AS IDX; ";
-                cmd = new SQLiteCommand(strsql, conn);
-                rdr = cmd.ExecuteReader();
-                if (rdr.Read())
+                // LAST_INSERT_ROWID()
+                Dictionary<string, object> emptyParam = new Dictionary<string, object>();
+                DataResult dataResult = DBConn.Instance.select("select_last_insert_rowid", emptyParam);
+
+                if (dataResult != null && dataResult.Count > 0)
                 {
-                    idx = Convert.ToInt32(rdr["IDX"].ToString());
+                    idx = Convert.ToInt32(dataResult.Data[0]["IDX"]);
                 }
             }
             catch (Exception ex)
@@ -1299,93 +1197,57 @@ namespace WeavingGenerator
                 Trace.Write(ex.ToString());
                 XtraMessageBox.Show("Error", "Msg Box Title");
             }
-            finally
-            {
-                try { if (rdr != null) rdr.Close(); } catch { }
-                try { if (conn != null) conn.Close(); } catch { }
-            }
+            
             return idx;
         }
+
+        //-------------------------------------------------------------------
         public void UpdateDAOProjectData(int idx, ProjectData data)
         {
             string name = data.Name;
             string reg_dt = data.Reg_dt;
             string jsonData = MainForm.ParseJson(data);
 
-            SQLiteConnection conn = null;
-            SQLiteCommand cmd = null;
-            SQLiteDataReader rdr = null;
-            string strsql = "";
-
+          
             try
             {
-                conn = new SQLiteConnection(connStr);
-                conn.Open();
+                Dictionary<string, object> paramMap = new Dictionary<string, object>();
+                paramMap.Add("name", name);
+                paramMap.Add("project_data", jsonData);
+                paramMap.Add("idx", idx);
 
-                strsql =
-                    "UPDATE TB_PROJECT " +
-                    "SET " +
-                    "   NAME = '" + name + "', " +
-                    "   PROJECT_DATA = '" + jsonData + "' " +
-                    "WHERE IDX = " + idx + " " +
-                    "";
-                cmd = new SQLiteCommand(strsql, conn);
-                cmd.ExecuteNonQuery();
+                DBConn.Instance.update("update_tb_project_by_idx", paramMap);
             }
             catch (Exception ex)
             {
                 Trace.Write(ex.ToString());
                 XtraMessageBox.Show("Error", "Msg Box Title");
             }
-            finally
-            {
-                try { if (rdr != null) rdr.Close(); } catch { }
-                try { if (conn != null) conn.Close(); } catch { }
-            }
         }
+
+        //-------------------------------------------------------------------
         public void RemoveDAOWeavingData(int idx)
         {
-            SQLiteConnection conn = null;
-            SQLiteCommand cmd = null;
-            SQLiteDataReader rdr = null;
-            string strsql = "";
-
             try
             {
-                conn = new SQLiteConnection(connStr);
-                conn.Open();
-
-                strsql =
-                    "DELETE FROM TB_PROJECT " +
-                    "WHERE IDX = " + idx + " " +
-                    "";
-                cmd = new SQLiteCommand(strsql, conn);
-                cmd.ExecuteNonQuery();
+                Dictionary<string, object> paramMap = new Dictionary<string, object>();
+                paramMap.Add("idx", idx);
+                DBConn.Instance.delete("delete_tb_project_by_idx", paramMap);
             }
             catch (Exception ex)
             {
                 Trace.Write(ex.ToString());
                 XtraMessageBox.Show("Error", "Msg Box Title");
             }
-            finally
-            {
-                try { if (rdr != null) rdr.Close(); } catch { }
-                try { if (conn != null) conn.Close(); } catch { }
-            }
         }
 
+        //-------------------------------------------------------------------
         public int SaveDAOYarn(Yarn yarn)
         {
-            SQLiteConnection conn = null;
-            SQLiteCommand cmd = null;
-            SQLiteDataReader rdr = null;
-            string strsql = "";
             int idx = -1;
-
             DateTime dt = DateTime.Now;
             try
             {
-
                 string name = yarn.Name;
                 string weight = yarn.Weight;
                 string unit = yarn.Unit;
@@ -1402,42 +1264,28 @@ namespace WeavingGenerator
 
                 name = Util.AddSlashes(name);
 
-                conn = new SQLiteConnection(connStr);
-                conn.Open();
+                Dictionary<string, object> paramMap = new Dictionary<string, object>();
+                paramMap.Add("name", name);
+                paramMap.Add("weight", weight);
+                paramMap.Add("unit", unit);
+                paramMap.Add("type", type);
+                paramMap.Add("textured", textured);
+                paramMap.Add("metal", metal);
+                paramMap.Add("image", image);
+                paramMap.Add("reg_dt", reg_dt);
 
-                strsql =
-                    "INSERT INTO TB_YARN " +
-                    "(" +
-                    "   NAME," +
-                    "   WEIGHT," +
-                    "   UNIT," +
-                    "   TYPE," +
-                    "   TEXTURED," +
-                    "   METAL," +
-                    "   IMAGE," +
-                    "   REG_DT" +
-                    ") " +
-                    "VALUES " +
-                    "(" +
-                    "   '" + name + "', " +
-                    "   '" + weight + "', " +
-                    "   '" + unit + "', " +
-                    "   '" + type + "', " +
-                    "   '" + textured + "', " +
-                    "   '" + metal + "', " +
-                    "   '" + image + "', " +
-                    "   '" + reg_dt + "' " +
-                    ")" +
-                    ";";
-                cmd = new SQLiteCommand(strsql, conn);
-                cmd.ExecuteNonQuery();
-
-                strsql = "SELECT LAST_INSERT_ROWID() AS IDX; ";
-                cmd = new SQLiteCommand(strsql, conn);
-                rdr = cmd.ExecuteReader();
-                if (rdr.Read())
+                int nRow = DBConn.Instance.insert("insert_tb_yarn", paramMap);
+                if (nRow == 0)
                 {
-                    idx = Convert.ToInt32(rdr["IDX"].ToString());
+                    // 갱신 안됨...
+                }
+                // 마지막 Insert ID 가져오기
+                Dictionary<string, object> emptyParam = new Dictionary<string, object>();
+                DataResult dataResult = DBConn.Instance.select("select_last_insert_rowid", emptyParam);
+
+                if (dataResult != null && dataResult.Count > 0)
+                {
+                    idx = Convert.ToInt32(dataResult.Data[0]["IDX"]);
                 }
             }
             catch (Exception ex)
@@ -1445,20 +1293,12 @@ namespace WeavingGenerator
                 Trace.Write(ex.ToString());
                 XtraMessageBox.Show("Error", "Msg Box Title");
             }
-            finally
-            {
-                try { if (rdr != null) rdr.Close(); } catch { }
-                try { if (conn != null) conn.Close(); } catch { }
-            }
+            
             return idx;
         }
+        //-------------------------------------------------------------------
         public bool UpdateDAOYarn(Yarn yarn)
-        {
-            SQLiteConnection conn = null;
-            SQLiteCommand cmd = null;
-            SQLiteDataReader rdr = null;
-            string strsql = "";
-
+        {           
             DateTime dt = DateTime.Now;
             try
             {
@@ -1479,24 +1319,21 @@ namespace WeavingGenerator
 
                 name = Util.AddSlashes(name);
 
-                conn = new SQLiteConnection(connStr);
-                conn.Open();
+                Dictionary<string, object> paramMap = new Dictionary<string, object>();
+                paramMap.Add("name", name);
+                paramMap.Add("weight", weight);
+                paramMap.Add("unit", unit);
+                paramMap.Add("type", type);
+                paramMap.Add("textured", textured);
+                paramMap.Add("metal", metal);
+                paramMap.Add("image", image);
+                paramMap.Add("idx", idx);
 
-                strsql =
-                    "UPDATE TB_YARN " +
-                    "SET" +
-                    "   NAME = '" + name + "'," +
-                    "   WEIGHT = '" + weight + "'," +
-                    "   UNIT = '" + unit + "'," +
-                    "   TYPE = '" + type + "'," +
-                    "   TEXTURED = '" + textured + "'," +
-                    "   METAL = '" + metal + "'," +
-                    "   IMAGE = '" + image + "' " +
-                    "WHERE IDX = " + idx + " " +
-                    ";";
-                cmd = new SQLiteCommand(strsql, conn);
-                cmd.ExecuteNonQuery();
-
+                int nCount = DBConn.Instance.update("update_tb_yarn_by_idx", paramMap);
+                if (nCount == 0)
+                {
+                    // 갱신 안됨...
+                }
             }
             catch (Exception ex)
             {
@@ -1504,68 +1341,36 @@ namespace WeavingGenerator
                 XtraMessageBox.Show("Error", "Msg Box Title");
                 return false;
             }
-            finally
-            {
-                try { if (rdr != null) rdr.Close(); } catch { }
-                try { if (conn != null) conn.Close(); } catch { }
-            }
+      
             return true;
         }
+
+        //-------------------------------------------------------------------
         public List<Yarn> ListDAOYarn()
         {
             List<Yarn> list = new List<Yarn>();
 
-            SQLiteConnection conn = null;
-            SQLiteCommand cmd = null;
-            SQLiteDataReader rdr = null;
-            string strsql = "";
             try
             {
-                conn = new SQLiteConnection(connStr);
-                conn.Open();
+                Dictionary<string, object> paramMap = new Dictionary<string, object>(); // 파라미터 없음
+                DataResult dataResult = DBConn.Instance.select("select_yarn_list", paramMap);
 
-                strsql =
-                    "SELECT " +
-                    "	IDX, " +
-                    "	NAME, " +
-                    "	WEIGHT, " +
-                    "	UNIT, " +
-                    "	TYPE, " +
-                    "	TEXTURED, " +
-                    "	METAL, " +
-                    "	IMAGE, " +
-                    "	REG_DT " +
-                    "FROM TB_YARN " +
-                    "WHERE USE_YN = 'Y' " +
-                    "ORDER BY IDX DESC " +
-                    ";";
-                cmd = new SQLiteCommand(strsql, conn);
-                rdr = cmd.ExecuteReader();
-                while (rdr.Read())
+                if (dataResult != null && dataResult.Count > 0)
                 {
-                    string STR_IDX = rdr["IDX"].ToString();
-                    string NAME = rdr["NAME"].ToString();
-                    string WEIGHT = rdr["WEIGHT"].ToString();
-                    string UNIT = rdr["UNIT"].ToString();
-                    string TYPE = rdr["TYPE"].ToString();
-                    string TEXTURED = rdr["TEXTURED"].ToString();
-                    string METAL = rdr["METAL"].ToString();
-                    string IMAGE = rdr["IMAGE"].ToString();
-                    string REG_DT = rdr["REG_DT"].ToString();
-
-                    NAME = Util.StripSlashes(NAME);
-
-                    Yarn yarn = new Yarn();
-                    yarn.Idx = Convert.ToInt32(STR_IDX);
-                    yarn.Name = NAME;
-                    yarn.Weight = WEIGHT;
-                    yarn.Unit = UNIT;
-                    yarn.Type = TYPE;
-                    yarn.Textured = TEXTURED;
-                    yarn.Metal = METAL;
-                    yarn.Image = IMAGE;
-                    yarn.Reg_dt = REG_DT;
-                    list.Add(yarn);
+                    foreach (var row in dataResult.Data)
+                    {
+                        Yarn yarn = new Yarn();
+                        yarn.Idx = Convert.ToInt32(row["IDX"]);
+                        yarn.Name = Util.StripSlashes(row["NAME"].ToString());
+                        yarn.Weight = row["WEIGHT"].ToString();
+                        yarn.Unit = row["UNIT"].ToString();
+                        yarn.Type = row["TYPE"].ToString();
+                        yarn.Textured = row["TEXTURED"].ToString();
+                        yarn.Metal = row["METAL"].ToString();
+                        yarn.Image = row["IMAGE"].ToString();
+                        yarn.Reg_dt = row["REG_DT"].ToString();
+                        list.Add(yarn);
+                    }
                 }
             }
             catch (Exception ex)
@@ -1573,43 +1378,29 @@ namespace WeavingGenerator
                 Trace.Write(ex.ToString());
                 XtraMessageBox.Show("Error", "Msg Box Title");
             }
-            finally
-            {
-                try { if (rdr != null) rdr.Close(); } catch { }
-                try { if (conn != null) conn.Close(); } catch { }
-            }
+            
             return list;
         }
+        //-----------------------------------------------------------
         public void RemoveDAOYarn(int idx)
         {
-            SQLiteConnection conn = null;
-            SQLiteCommand cmd = null;
-            SQLiteDataReader rdr = null;
-            string strsql = "";
-
             try
             {
-                conn = new SQLiteConnection(connStr);
-                conn.Open();
+                Dictionary<string, object> paramMap = new Dictionary<string, object>();
+                paramMap.Add("idx", idx);
 
-                strsql =
-                    "UPDATE TB_YARN " +
-                    "SET USE_YN = 'N' " +
-                    "WHERE IDX = " + idx + " " +
-                    "";
-                cmd = new SQLiteCommand(strsql, conn);
-                cmd.ExecuteNonQuery();
+                int affectedRows = DBConn.Instance.update("soft_delete_tb_yarn_by_idx", paramMap);
+                if (affectedRows == 0)
+                {
+                    // 삭체된게 없음.
+                }
             }
             catch (Exception ex)
             {
                 Trace.Write(ex.ToString());
                 XtraMessageBox.Show("Error", "Msg Box Title");
             }
-            finally
-            {
-                try { if (rdr != null) rdr.Close(); } catch { }
-                try { if (conn != null) conn.Close(); } catch { }
-            }
+
         }
         ///////////////////////////////////////////////////////////////////////
         // 끝 - DAO
@@ -2096,8 +1887,6 @@ namespace WeavingGenerator
         ///////////////////////////////////////////////////////////////////////
         // 끝 - 직물 정보 설정
         ///////////////////////////////////////////////////////////////////////
-
-
 
 
         private Pattern GetPattern(int idx)
@@ -4028,81 +3817,6 @@ namespace WeavingGenerator
         }
     }
 
-
-    class DBInstance
-    {
-        private string connStr = "";
-        private static DBInstance _instance;
-
-
-        public static DBInstance Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new DBInstance();
-                }
-                return _instance;
-
-            }
-        }
-        private DBInstance()
-        {
-            try
-            {
-                // 게시 제품이름
-                string szProductName = "WeavingGenerator";
-                // Database 이름
-                string szDBFileName = "weaving_ver1.db";
-                // Database 지정할 경로
-                string szExecutablePath = String.Format(@"{0}\{1}", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), szProductName);
-                DirectoryInfo di = new DirectoryInfo(szExecutablePath);
-                if (!di.Exists)
-                {
-                    // 생성
-                    Directory.CreateDirectory(szExecutablePath);
-                }
-
-                // Database 지정할 경로 + Database 이름
-                string szDBFile = String.Format(@"{0}\{1}", szExecutablePath, szDBFileName);
-
-                // DB정보 
-                connStr = string.Format("Data Source={0};", szDBFile);
-
-                // sqlite.db가 해당 경로 폴더 안에 있는지 체크
-                if (!System.IO.File.Exists(szDBFile))
-                {
-                    SQLiteConnection.CreateFile(szDBFile);
-                }
-
-                SQLiteConnection conn = new SQLiteConnection(connStr);
-                conn.Open();
-
-                string strsql = "CREATE TABLE IF NOT EXISTS TB_PROJECT ( " +
-                    "IDX INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "NAME VARCHAR(100) " +
-                    ") ";
-                SQLiteCommand cmd = new SQLiteCommand(strsql, conn);
-                cmd.ExecuteNonQuery();
-                conn.Close();
-            }
-            catch (Exception ex)
-            {
-                Trace.Write(ex.ToString());
-                XtraMessageBox.Show("Error", "Msg Box Title");
-            }
-        }
-
-
-
-        //private SQLiteConnection conn;
-
-        public SQLiteConnection GetConnection()
-        {
-            return new SQLiteConnection(connStr);
-        }
-    }
 
     public class FormFile
     {

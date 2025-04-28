@@ -212,7 +212,19 @@ namespace Jm.DBConn
             }
             catch (InvalidOperationException e)
             {
-                string msg = "SQLite EXCEPTION : [" + e.Message + "]";
+                string msg = "SQLite InvalidOperationException : [" + e.Message + "]";
+                Console.WriteLine(msg);
+                FileLogger.info(msg);
+            }
+            catch (SQLiteException e)
+            {
+                string msg = "SQLite Exception : [" + e.Message + "]";
+                Console.WriteLine(msg);
+                FileLogger.info(msg);
+            }
+            catch (Exception e)
+            {
+                string msg = "General Exception : [" + e.Message + "]";
                 Console.WriteLine(msg);
                 FileLogger.info(msg);
             }

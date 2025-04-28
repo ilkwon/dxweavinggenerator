@@ -9,38 +9,151 @@
 
 	<insert id="insert_tb_app">
 		INSERT INTO TB_APP (
-		APPID,
-		REG_DT
+			APPID,
+			REG_DT
 		) VALUES (
-		@APPID,
-		@REG_DT
+			@appid,
+			@reg_dt
 		);
 	</insert>
 
 	<create id="create_tb_project">
 		CREATE TABLE IF NOT EXISTS TB_PROJECT (
-		IDX INTEGER PRIMARY KEY AUTOINCREMENT,
-		NAME TEXT,
-		PROJECT_DATA TEXT,
-		REG_DT TEXT
+			IDX INTEGER PRIMARY KEY AUTOINCREMENT,
+			NAME TEXT,
+			PROJECT_DATA TEXT,
+			REG_DT TEXT
 		);
 	</create>
 
 	<create id="create_tb_yarn">
 		CREATE TABLE IF NOT EXISTS TB_YARN (
-		IDX INTEGER PRIMARY KEY AUTOINCREMENT,
-		NAME TEXT,
-		WEIGHT TEXT,
-		UNIT TEXT,
-		TYPE TEXT,
-		TEXTURED TEXT,
-		IMAGE TEXT,
-		METAL TEXT,
-		USE_YN TEXT DEFAULT 'Y',
-		REG_DT TEXT
+			IDX INTEGER PRIMARY KEY AUTOINCREMENT,
+			NAME TEXT,
+			WEIGHT TEXT,
+			UNIT TEXT,
+			TYPE TEXT,
+			TEXTURED TEXT,
+			IMAGE TEXT,
+			METAL TEXT,
+			USE_YN TEXT DEFAULT 'Y',
+			REG_DT TEXT
 		);
 	</create>
+	<select id="select_tb_appid">
+		SELECT APPID FROM TB_APP
+	</select>
+	<select id="select_tb_project_by_idx">
+		SELECT
+			IDX,
+			NAME,
+			PROJECT_DATA
+			FROM TB_PROJECT
+			WHERE IDX = @idx;
+	</select>
+
+	<select		id="select_project_list">
+		SELECT
+			IDX,
+			NAME,
+			PROJECT_DATA
+			FROM TB_PROJECT
+			ORDER BY IDX DESC;
+	</select>
+
+	<insert id="insert_tb_project">
+		INSERT INTO TB_PROJECT
+		(
+			NAME,
+			REG_DT,
+			PROJECT_DATA
+		)
+		VALUES
+		(
+			@name,
+			@reg_dt,
+			@project_data
+		);
+	</insert>
+
+	<select id="select_last_insert_rowid">
+		SELECT LAST_INSERT_ROWID() AS IDX;
+	</select>
+
+	<update id="update_tb_project_by_idx">
+		UPDATE TB_PROJECT
+		SET
+		NAME = @name,
+		PROJECT_DATA = @project_data
+		WHERE IDX = @idx;
+	</update>
+	<delete id="delete_tb_project_by_idx">
+		DELETE FROM TB_PROJECT WHERE IDX = @idx;
+	</delete>
+
+	<insert id="insert_tb_yarn">
+		INSERT INTO TB_YARN
+		(
+			NAME,
+			WEIGHT,
+			UNIT,
+			TYPE,
+			TEXTURED,
+			METAL,
+			IMAGE,
+			REG_DT
+		)
+		VALUES
+		(
+			@name,
+			@weight,
+			@unit,
+			@type,
+			@textured,
+			@metal,
+			@image,
+			@reg_dt
+		);
+	</insert>
+
+	<select id="select_last_insert_rowid">
+		SELECT LAST_INSERT_ROWID() AS IDX;
+	</select>
+	<update id="update_tb_yarn_by_idx">
+		UPDATE TB_YARN
+			SET
+				NAME = @name,
+				WEIGHT = @weight,
+				UNIT = @unit,
+				TYPE = @type,
+				TEXTURED = @textured,
+				METAL = @metal,
+				IMAGE = @image
+				WHERE IDX = @idx;
+	</update>
+
+
+	<select id="select_yarn_list">
+		SELECT
+			IDX,
+			NAME,
+			WEIGHT,
+			UNIT,
+			TYPE,
+			TEXTURED,
+			METAL,
+			IMAGE,
+			REG_DT
+		FROM TB_YARN
+		WHERE USE_YN = 'Y'
+		ORDER BY IDX DESC;
+	</select>
+
+	<update id="soft_delete_tb_yarn_by_idx">
+		UPDATE TB_YARN
+		SET USE_YN = 'N'
+		WHERE IDX = @idx;
+	</update>
+
 
 </sqlMap>
-
-
