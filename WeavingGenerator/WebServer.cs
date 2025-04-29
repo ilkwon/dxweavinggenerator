@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DevExpress.CodeParser;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -311,8 +312,11 @@ namespace WeavingGenerator
             if (cts != null)
             {
                 cts.Cancel(); // 모든 스레드에 종료 요청.
-
-                this.listenThread?.Join();                
+                this.listenThread?.Join(1000);
+                //if (this.listenThread != null && !this.listenThread.Join(1000))
+                //{
+                //    Console.WriteLine("listenThread 강제 종료 실패");
+                //}
                 this.listenThread = null;
                 
 
@@ -600,18 +604,32 @@ namespace WeavingGenerator
         {
             while (this.isRunning && !token.IsCancellationRequested)
             {
-                HttpListenerContext context = listener.GetContext();
-
-                Thread responseThread = new Thread(new ParameterizedThreadStart(Response));
-
-                responseThread.IsBackground = true;
-                lock (this.responseThreadList)
+                try
                 {
-                    this.responseThreadList.Add(responseThread);
+                    HttpListenerContext context = listener.GetContext();
+
+                    Thread responseThread = new Thread(new ParameterizedThreadStart(Response)); // ✅ 수정
+                    responseThread.IsBackground = true;
+
+                    lock (this.responseThreadList)
+                    {
+                        this.responseThreadList.Add(responseThread);
+                    }
+
+                    responseThread.Start(new ThreadParameter { Context = context });
                 }
-                responseThread.Start(new ThreadParameter { Context = context, Thread = responseThread });
+                catch (HttpListenerException ex)
+                {
+                    Console.WriteLine("[Listen] listener 중단됨: " + ex.Message);
+                    break; // 서버 종료 중 정상 발생
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("[Listen] 예외 발생: " + ex.Message);
+                }
             }
         }
+
 
         #endregion
         #region 응답하기 - Response(parameter)
