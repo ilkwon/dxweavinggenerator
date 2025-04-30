@@ -142,6 +142,55 @@ namespace WeavingGenerator
             return $"{dyeColor.R.ToString("X2")}{dyeColor.G.ToString("X2")}{dyeColor.B.ToString("X2")}";
         }
 
+        public string SerializeJson()
+        {
+            var settings = new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore
+            };
+
+            var pattern = this.Pattern;
+
+            var wrapper = new
+            {
+                Name = this.Name,
+                ProjectID = this.ProjectID,
+                OptionMetal = this.OptionMetal,
+                Memo = Util.Base64Encode(this.Memo),
+                YarnDyed = this.YardDyed ? "Y" : "N",
+                DyeColor = this.DyeColor,
+                Reg_dt = this.Reg_dt,
+                Pattern = pattern != null ? new
+                {
+                    Idx = pattern.Idx,
+                    Name = pattern.Name,
+                    XLength = pattern.XLength,
+                    YLength = pattern.YLength,
+                    Data = ConvertPatternData(pattern.Data)
+                } : null,
+                Warp = this.Warp,
+                Weft = this.Weft,
+                PhysicalProperty = this.PhysicalProperty
+            };
+
+            return JsonConvert.SerializeObject(wrapper, settings);
+        }
+
+        private List<List<int>> ConvertPatternData(int[,] data)
+        {
+            var result = new List<List<int>>();
+            for (int i = 0; i < data.GetLength(0); i++)
+            {
+                var row = new List<int>();
+                for (int j = 0; j < data.GetLength(1); j++)
+                {
+                    row.Add(data[i, j]);
+                }
+                result.Add(row);
+            }
+            return result;
+        }
     }
 
     public class BasicInfo
@@ -228,8 +277,25 @@ namespace WeavingGenerator
                 xLength = value.GetLength(1);
                 data = value; 
             }
-        }
+        }        
     }
+
+    public class SerializableProjectWrapper
+    {
+        public string Name { get; set; }
+        public string ProjectID { get; set; }
+        public string OptionMetal { get; set; }
+        public string Memo { get; set; }
+        public string YarnDyed { get; set; }
+        public string DyeColor { get; set; }
+        public string Reg_dt { get; set; }
+
+        public object Pattern { get; set; }
+        public Warp Warp { get; set; }
+        public Weft Weft { get; set; }
+        public PhysicalProperty PhysicalProperty { get; set; }
+    }
+
     public class WRepeat
     {
         private int startIdx;

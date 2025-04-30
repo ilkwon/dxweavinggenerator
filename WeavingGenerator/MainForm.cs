@@ -28,13 +28,15 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using WeavingGenerator.Services;
+using WeavingGenerator.Utils;
+//using WeavingGenerator.ViewModels;
 namespace WeavingGenerator
 {
     public partial class MainForm : DevExpress.XtraEditors.XtraForm
     {
         public static String Default_DyeColor = "#255,255,255,255";
-
+        //private MainViewModel viewModel;
         ///////////////////////////////////////////////////////////////////////
         /// DB URL
         ///////////////////////////////////////////////////////////////////////
@@ -90,9 +92,11 @@ namespace WeavingGenerator
         }
         public MainForm()
         {
-            //WindowsFormsSettings.DefaultFont = new System.Drawing.Font("맑은고딕", 10);
-            this.Font = new System.Drawing.Font("맑은고딕", 10);
+            //WindowsFormsSettings.DefaultFont = new System.Dawing.Font("맑은고딕", 10);
+            this.Font = new System.Drawing.Font("맑은고딕", 11);
             InitializeComponent();
+            //viewModel = new MainViewModel();
+            
             ///////////////////////////////////////////////////////////////////
             // Exit Event
             ///////////////////////////////////////////////////////////////////
@@ -172,7 +176,7 @@ namespace WeavingGenerator
                 tempRunIdx = obj.Idx;
                 tempRunWData = obj;
 
-                ThreadInitProject();
+                StartInitProject(); // ← Task 기반으로 대체
             }
             else
             {
@@ -952,15 +956,7 @@ namespace WeavingGenerator
         public ProjectData GetProjectData(int idx)
         {
             List<ProjectData> list = this.GetProjectDataList();
-            for (int i = 0; i < list.Count; i++)
-            {
-                ProjectData obj = list[i];
-                if (obj.Idx == idx)
-                {
-                    return obj;
-                }
-            }
-            return null;
+            return ProjectDataService.GetProjectData(idx, list);
         }
         public List<ProjectData> GetProjectDataList()
         {
@@ -1136,7 +1132,8 @@ namespace WeavingGenerator
                 string projectName = dataResult.Data[0]["NAME"].ToString();
                 string projectData = dataResult.Data[0]["PROJECT_DATA"].ToString();
 
-                data = MainForm.ParseProjectData(projectData);
+                //data = MainForm.ParseProjectData(projectData);
+                data = ProjectDataParser.Parse(projectData);
                 data.Idx = idx;
                 Console.WriteLine($"[프로젝트] IDX: {projectIdx}, NAME: {projectName}");
             }
@@ -1160,7 +1157,8 @@ namespace WeavingGenerator
                         int idx = Convert.ToInt32(row["IDX"]);
                         string projectDataString = row["PROJECT_DATA"].ToString();
 
-                        ProjectData data = MainForm.ParseProjectData(projectDataString);
+                        ///ProjectData data = MainForm.ParseProjectData(projectDataString);
+                        ProjectData data = ProjectDataParser.Parse(projectDataString);
                         data.Idx = idx;
                         list.Add(data);
                     }
@@ -1215,8 +1213,8 @@ namespace WeavingGenerator
         {
             string name = data.Name;
             string reg_dt = data.Reg_dt;
-            string jsonData = MainForm.ParseJson(data);
-
+            //string jsonData = MainForm.ParseJson(data);
+            string jsonData = data.SerializeJson();
           
             try
             {
@@ -1521,7 +1519,8 @@ namespace WeavingGenerator
         {
             ProjectData data = CreateDefaultProjectData(name);
 
-            string json = ParseJson(data);
+            //string json = ParseJson(data);
+            string json = data.SerializeJson();
             int idx = SaveDAOProjectData(name, json);
             data.Idx = idx; // 입력 후 설정
 
@@ -1677,30 +1676,8 @@ namespace WeavingGenerator
                     weave3DViewer = null;
                 }
 
-                // Task 정리
-                if (taskLoadedObject != null)
-                {
-                    try
-                    {
-                        taskLoadedObject.Wait(3000); // 최대 3초 대기
-                    }
-                    catch (AggregateException ex)
-                    {
-                        Console.WriteLine("Task 대기 중 오류: " + ex.Message);
-                    }
-                    taskLoadedObject = null;
-                }
-
-                if (ctsGenerateImage != null)
-                {
-                    ctsGenerateImage.Cancel();
-                    threadGenerateImage?.Join(1000);
-                    ctsGenerateImage.Dispose();
-                    ctsGenerateImage = null;
-                    threadGenerateImage = null;
-                }
-
-                // CEF 종료
+                CleanupLoadObjectTask();
+                CancelInitProjectView();
                 Cef.Shutdown();
             }
             catch (Exception ex)
@@ -1714,15 +1691,66 @@ namespace WeavingGenerator
             }
         }
 
+        //---------------------------------------------------------------------
+        private void CancelInitProjectView()
+        {
+            if (ctsInitView != null)
+            {
+                ctsInitView.Cancel(); // 안전하게 취소 요청
+                try
+                {
+                    if (taskInitView != null)
+                    {
+                        if (!taskInitView.Wait(500)) // 최대 0.5초만 대기
+                        {
+                            Console.WriteLine("InitView Task가 제시간에 종료되지 않았습니다.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("InitView Task 종료 대기 중 예외: " + ex.Message);
+                }
+                finally
+                {
+                    ctsInitView.Dispose();
+                    ctsInitView = null;
+                    taskInitView = null;
+                }
+            }
+        }
 
+        //---------------------------------------------------------------------
+        private void CleanupLoadObjectTask()
+        {
+            if (ctsGenerateImage != null)
+            {
+                ctsGenerateImage.Cancel();
 
+                try
+                {
+                    if (taskGenerateImage != null)
+                    {
+                        if (!taskGenerateImage.Wait(300)) // 최대 0.3초만 대기
+                            Console.WriteLine("이미지 생성 Task가 제시간에 종료되지 않음.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("taskGenerateImage 종료 중 예외: " + ex.Message);
+                }
+
+                ctsGenerateImage.Dispose();
+                ctsGenerateImage = null;
+                taskGenerateImage = null;
+            }
+        }
+
+        //---------------------------------------------------------------------
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             ExitApp();
         }
-
-
-
 
         ///////////////////////////////////////////////////////////////////////
         // 시작 - 메인 메뉴 
@@ -1742,45 +1770,44 @@ namespace WeavingGenerator
         ///////////////////////////////////////////////////////////////////////
         // 3D Viewer Reload Thread
         ///////////////////////////////////////////////////////////////////////
-        Thread threadGenerateImage = null;
-        CancellationTokenSource ctsGenerateImage;
+        private Task taskGenerateImage;
+        private CancellationTokenSource ctsGenerateImage;
         
         public void ThreadViewerRepaint()
         {
             if (ctsGenerateImage!=null)
             {
-                ctsGenerateImage.Cancel();
-                threadGenerateImage?.Join();
+                ctsGenerateImage.Cancel();                
                 ctsGenerateImage.Dispose();
                 ctsGenerateImage = null;
             }
 
             ctsGenerateImage = new CancellationTokenSource();
-            threadGenerateImage = new Thread(() => ThreadRunGenerateImage(ctsGenerateImage.Token));
-            threadGenerateImage.Start();
+            var token = ctsGenerateImage.Token;
+
+            taskGenerateImage = Task.Run(() => RunGenerateImageAsync(token), token);
+
             //Trace.WriteLine("thread_generate START............ ");
         }
-        private void ThreadRunGenerateImage(CancellationToken token)
+
+        private async Task RunGenerateImageAsync(CancellationToken token)
         {
             if (token.IsCancellationRequested) return;
-            if (IsLoaded3DObject == true)
+
+            if (IsLoaded3DObject)
             {
-                if (this.InvokeRequired) // 현재 스레드가 this(Form1) 요소를 만든 스레드를 경유해야 하는지 확인
+                // UI 접근 필요 → UI 스레드에서 실행
+                await this.InvokeAsync(() =>
                 {
-                    this.BeginInvoke(
-                        (System.Action)(() =>
-                        {
-                            ShowProgressForm();
+                    ShowProgressForm();
 
-                            //patternViewer1.Generate3DImage("");
-                            weave2DViewer.RepaintCanvas();
-                            weave3DViewer.ExecuteScriptAsync("ReloadMap2('" + SELECTED_IDX + "', '" + (nCall++) + "');");
+                    // patternViewer1.Generate3DImage(""); // 필요시 복구
+                    weave2DViewer.RepaintCanvas();
+                    weave3DViewer.ExecuteScriptAsync("ReloadMap2('" + SELECTED_IDX + "', '" + (nCall++) + "');");
 
-                            CloseProgressForm();
-                        }));
-                }
+                    CloseProgressForm();
+                });
             }
-        
         }
 
         ///////////////////////////////////////////////////////////////////////
@@ -1805,8 +1832,9 @@ namespace WeavingGenerator
 
         public void SetJsonData(string jsonData)
         {
-            ProjectData data = MainForm.ParseProjectData(jsonData);
-            SetProjectData(SELECTED_IDX, data);
+          //ProjectData data = MainForm.ParseProjectData(jsonData);
+          ProjectData data = ProjectDataParser.Parse(jsonData);
+          SetProjectData(SELECTED_IDX, data);
         }
 
 
@@ -2202,7 +2230,8 @@ namespace WeavingGenerator
         {
             // 임시
             DialogJsonData dialog = new DialogJsonData(this);
-            string json = ParseJson(this.GetProjectData(SELECTED_IDX));
+            //string json = ParseJson(this.GetProjectData(SELECTED_IDX));
+            string json = this.GetProjectData(SELECTED_IDX).SerializeJson();
             dialog.SetJsonData(json);
             dialog.ShowDialog();
         }
@@ -2956,7 +2985,7 @@ namespace WeavingGenerator
             weave2DViewer.SetProjectData(idx, data);
             ThreadViewerRepaint();
         }
-
+    /*-----------------------
         public static ProjectData ParseProjectData(string json)
         {
             if (string.IsNullOrEmpty(json) == true)
@@ -3231,6 +3260,7 @@ namespace WeavingGenerator
 
             return prjTemp;
         }
+    -----------------------------------------*/
         public static string ParseJson(ProjectData weaveData)
         {
             if (weaveData == null)
@@ -3573,37 +3603,56 @@ namespace WeavingGenerator
         public ProjectData CreateDefaultProjectData(string name)
         {
             string json = this.CreateDefaultJsonProjectData(name);
-            return ParseProjectData(json);
+            //return ParseProjectData(json);
+            return ProjectDataParser.Parse(json);
         }
         //---------------------------------------------------------------------
 
         ///////////////////////////////////////////////////////////////////////
         // 시작 - Thread
         ///////////////////////////////////////////////////////////////////////
-        Thread threadInitview = null;
-        int tempRunIdx = -1;
-        ProjectData tempRunWData;
+        private Task taskInitView;
+        private CancellationTokenSource ctsInitView;
+        private int tempRunIdx = -1;
+        private ProjectData tempRunWData;
 
-        // 프로젝트 첫 로딩에 데이터 셋팅
-        public void ThreadInitProject()
+        public void StartInitProject()
         {
-            threadInitview = new Thread(new ThreadStart(ThreadRunInitProject));
-            threadInitview.Start();
+            // 이전 초기화 취소
+            ctsInitView?.Cancel();
+            ctsInitView?.Dispose();
+            ctsInitView = new CancellationTokenSource();
+
+            taskInitView = Task.Run(() => RunInitProjectAsync(ctsInitView.Token), ctsInitView.Token);
         }
-        private void ThreadRunInitProject()
+
+        private async Task RunInitProjectAsync(CancellationToken token)
         {
-            while (IsLoaded3DObject == false)
+            try
             {
-                Thread.Sleep(1000);
+                // IsLoaded3DObject가 true 될 때까지 대기
+                while (!IsLoaded3DObject)
+                {
+                    if (token.IsCancellationRequested)
+                        return;
+
+                    await Task.Delay(500, token); // 0.5초 주기로 체크
+                }
+
+                // UI 접근은 InvokeAsync 사용
+                await this.InvokeAsync(() =>
+                {
+                    SetProjectData(tempRunIdx, tempRunWData);
+                    CloseProgressForm();
+                });
             }
-            if (this.InvokeRequired) // 현재 스레드가 this(Form1) 요소를 만든 스레드를 경유해야 하는지 확인
+            catch (OperationCanceledException)
             {
-                this.BeginInvoke(
-                    (System.Action)(() =>
-                    {
-                        SetProjectData(tempRunIdx, tempRunWData);
-                        CloseProgressForm();
-                    }));
+                Console.WriteLine("초기화 Task가 취소되었습니다.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("프로젝트 초기화 중 예외: " + ex.Message);
             }
         }
 
@@ -3632,8 +3681,6 @@ namespace WeavingGenerator
             ctsLoadedObject = new CancellationTokenSource(); // 새 토큰 생성
             //taskLoadedObject = Task.Run(() => ThreadRunLoadedObject(ctsLoadedObject.Token));
             taskLoadedObject = Task.Run(async () => await ThreadRunLoadedObject(ctsLoadedObject.Token));
-
-
         }
 
         //---------------------------------------------------------------------
@@ -3641,7 +3688,7 @@ namespace WeavingGenerator
         {
             while (!token.IsCancellationRequested && IsLoaded3DObject == false)
             {
-                await Task.Delay(1000, token); // Sleep 대신 비동기 대기
+                await Task.Delay(500, token); // Sleep 대신 비동기 대기
 
                 try
                 {
@@ -3875,5 +3922,28 @@ namespace WeavingGenerator
         public string ContentType { get; set; }
         public string FilePath { get; set; }
         public Stream Stream { get; set; }
+    }
+}
+
+
+
+public static class ControlExtensions
+{
+    public static Task InvokeAsync(this Control control, Action action)
+    {
+        var tcs = new TaskCompletionSource<bool>();
+        control.BeginInvoke(new MethodInvoker(() =>
+        {
+            try
+            {
+                action();
+                tcs.SetResult(true);
+            }
+            catch (Exception ex)
+            {
+                tcs.SetException(ex);
+            }
+        }));
+        return tcs.Task;
     }
 }
