@@ -28,13 +28,20 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 using WeavingGenerator.Services;
-using WeavingGenerator.Utils;
+using WeavingGenerator.Controllers;
+using WeavingGenerator.Views;
+
 //using WeavingGenerator.ViewModels;
 namespace WeavingGenerator
 {
   public partial class MainForm : DevExpress.XtraEditors.XtraForm
   {
+    public BasicView Basic { get; private set; }
+    
+    public ProjectController _projectController;
+
     public static String Default_DyeColor = "#255,255,255,255";
     //private MainViewModel viewModel;
     ///////////////////////////////////////////////////////////////////////
@@ -90,12 +97,15 @@ namespace WeavingGenerator
         return cp;
       }
     }
+    
+    public ProjectController ProjectController => _projectController;
+
     public MainForm()
     {
       //WindowsFormsSettings.DefaultFont = new System.Dawing.Font("맑은고딕", 10);
       this.Font = new System.Drawing.Font("맑은고딕", 11);
       InitializeComponent();
-      //viewModel = new MainViewModel();
+      InitialieViewer();
 
       ///////////////////////////////////////////////////////////////////
       // Exit Event
@@ -104,8 +114,21 @@ namespace WeavingGenerator
 
       //DB 커넥션 세팅
       db = DBConn.Instance;
+      _projectController = new ProjectController();
     }
-
+    private ProjectDataView _dataView;
+    public void InitialieViewer()
+    {
+      Basic = new BasicView(
+        textEdit_Name,
+        textEdit_BasicInfoRegDt,
+        checkEdit_YarnDyed,
+        colorEdit_DyeColor,
+        comboBoxEdit_Scale
+      );
+      
+      _dataView = new ProjectDataView(Basic);
+    }
     private void MainForm_Load(object sender, EventArgs e)
     {
 
@@ -207,7 +230,7 @@ namespace WeavingGenerator
       public int Idx { get; set; }
     }
     LayoutControlGroup lcgProject;
-
+    public 
     //기본정보
     TextEdit textEdit_Name;
     TextEdit textEdit_BasicInfoRegDt;
@@ -1515,22 +1538,8 @@ namespace WeavingGenerator
         }
       }
     }
-    public int CreateProject(string name)
-    {
-      ProjectData data = CreateDefaultProjectData(name);
 
-      //string json = ParseJson(data);
-      string json = data.SerializeJson();
-      int idx = SaveDAOProjectData(name, json);
-      data.Idx = idx; // 입력 후 설정
 
-      prjList.Insert(0, data);
-
-      UpdateProjectView();
-      SetProjectData(idx, data);
-
-      return idx;
-    }
     public void OpenProject(int idx)
     {
       ProjectData data = this.GetProjectData(idx);
@@ -1819,13 +1828,6 @@ namespace WeavingGenerator
     // 끝 - 메인 메뉴 
     ///////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-
     ///////////////////////////////////////////////////////////////////////
     // 시작 - 직물 정보 설정 
     ///////////////////////////////////////////////////////////////////////
@@ -1836,7 +1838,6 @@ namespace WeavingGenerator
       ProjectData data = ProjectDataParser.Parse(jsonData);
       SetProjectData(SELECTED_IDX, data);
     }
-
 
     public void SetProjectData(int idx, ProjectData data)
     {
@@ -2985,29 +2986,7 @@ namespace WeavingGenerator
       weave2DViewer.SetProjectData(idx, data);
       ThreadViewerRepaint();
     }
-
-    //---------------------------------------------------------------------
-    public string CreateDefaultJsonProjectData(string name)
-    {
-      string path = Path.Combine(Application.StartupPath, "Resource", "json", "default_project.json");
-      string jsonTemplate = File.ReadAllText(path, Encoding.UTF8);
-
-      var project = JsonConvert.DeserializeObject<ProjectData>(jsonTemplate);
-      project.Name = name;
-      project.ProjectID = Util.GenerateUUID();
-      project.Memo = Util.Base64Encode("중량:\r\n폭:\r\n혼용률:\r\n");
-      project.DyeColor = Default_DyeColor;
-      project.Reg_dt = DateTime.Now.ToString("yyyyMMddhhmmss");
-
-      return JsonConvert.SerializeObject(project, Formatting.Indented);
-    }
-    //---------------------------------------------------------------------
-    public ProjectData CreateDefaultProjectData(string name)
-    {
-      string json = this.CreateDefaultJsonProjectData(name);
-      //return ParseProjectData(json);
-      return ProjectDataParser.Parse(json);
-    }
+    
     //---------------------------------------------------------------------
 
     ///////////////////////////////////////////////////////////////////////

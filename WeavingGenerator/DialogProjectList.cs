@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using WeavingGenerator.Services;
 using static DevExpress.XtraEditors.Mask.MaskSettings;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
@@ -238,7 +239,7 @@ namespace WeavingGenerator
         }
         private void EventNewProjectData(object sender, int newIdx)
         {
-            ProjectData wData = mainForm.GetDAOProjectData(newIdx);
+            ProjectData wData = ProjectDataRepository.GetDAOProjectData(newIdx);
             if(wData == null)
             {
                 return;
@@ -317,7 +318,7 @@ namespace WeavingGenerator
             for(int i =  0; i < deleteList.Count; i++)
             {
                 int deleteIdx = deleteList[i];
-                mainForm.RemoveProject(deleteIdx);
+                mainForm.ProjectController.RemoveProject(deleteIdx);
             }
 
             // 업데이트 데이터

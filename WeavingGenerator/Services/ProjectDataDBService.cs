@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using DevExpress.XtraEditors;
 using Jm.DBConn;
-using WeavingGenerator.Utils;
 
 namespace WeavingGenerator.Services
 {

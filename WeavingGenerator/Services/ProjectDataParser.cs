@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static DevExpress.Utils.MVVM.Internal.ILReader;
 
-namespace WeavingGenerator.Utils
+namespace WeavingGenerator.Services
 {
   public static class ProjectDataParser
   {

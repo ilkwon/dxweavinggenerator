@@ -40,12 +40,14 @@ namespace WeavingGenerator
                 return;
             }
             
-            int idx = mainForm.CreateProject(textEdit_Name.Text);
+            int idx = mainForm.ProjectController.CreateProject(textEdit_Name.Text);            
             if(idx < 0)
             {
                 XtraMessageBox.Show("프로젝트 생성 하지 못했습니다. 앱을 다시 시작 후 이용해주세요..");
                 return;
             }
+            var data = mainForm.ProjectController.GetProjectData(idx);
+            mainForm.SetProjectData(idx, data);
 
             // 이벤트
             if (dialogNewProjectEventHandler != null)
