@@ -64,13 +64,13 @@ namespace WeavingGenerator
     ///////////////////////////////////////////////////////////////////////
     /// 직물 정보 목록
     ///////////////////////////////////////////////////////////////////////
-    List<ProjectData> prjList = new List<ProjectData>();
+    //List<ProjectData> prjList = new List<ProjectData>();
 
 
     ///////////////////////////////////////////////////////////////////////
     /// WeavingData
     ///////////////////////////////////////////////////////////////////////
-    int SELECTED_IDX = -1;
+    
     //ProjectData SELECTED_PRJ = null;
 
 
@@ -114,7 +114,7 @@ namespace WeavingGenerator
 
       //DB 커넥션 세팅
       db = DBConn.Instance;
-      _projectController = new ProjectController();
+      
     }
     private ProjectDataView _dataView;
     public void InitialieViewer()
@@ -172,7 +172,8 @@ namespace WeavingGenerator
       ///////////////////////////////////////////////////////////////////
       /// 프로젝트 목록 조회
       ///////////////////////////////////////////////////////////////////
-      prjList = ListDAOProjectData();
+      _projectController = new ProjectController();
+      //prjList = ListDAOProjectData();
 
       ///////////////////////////////////////////////////////////////////
       /// WeavingData List 로딩 후 프로젝트 리그트업
@@ -192,9 +193,9 @@ namespace WeavingGenerator
       ///////////////////////////////////////////////////////////////////
       /// 킥오프에 사용 (임시)
       ///////////////////////////////////////////////////////////////////
-      if (prjList.Count > 0)
+      if (ProjectController.ProjectDataList.Count > 0)
       {
-        ProjectData obj = prjList[0];
+        ProjectData obj = ProjectController.ProjectDataList[0];
 
         tempRunIdx = obj.Idx;
         tempRunWData = obj;
@@ -216,7 +217,7 @@ namespace WeavingGenerator
 
     private void MainForm_Shown(object sender, EventArgs e)
     {
-      if (prjList.Count <= 0)
+      if (ProjectController.ProjectDataList.Count <= 0)
       {
         //DialogNewProject dialog = new DialogNewProject(this);
         //dialog.dialogNewProjectEventHandler += new DialogNewProjectEventHandler(EventNewProject);
@@ -311,9 +312,9 @@ namespace WeavingGenerator
       lcgProject.GroupStyle = DevExpress.Utils.GroupStyle.Title;
       //lcgProject.AppearanceGroup.Font = WindowsFormsSettings.DefaultFont;
 
-      for (int i = 0; i < prjList.Count; i++)
+      for (int i = 0; i < ProjectController.ProjectDataList.Count; i++)
       {
-        ProjectData wData = prjList[i];
+        ProjectData wData = ProjectController.ProjectDataList[i];
 
         LayoutControlItem item = lcgProject.AddItem();
         item.Padding = new DevExpress.XtraLayout.Utils.Padding(3, 3, 10, 3);
@@ -353,9 +354,9 @@ namespace WeavingGenerator
         }
       }
 
-      for (int i = 0; i < prjList.Count; i++)
+      for (int i = 0; i < ProjectController.ProjectDataList.Count; i++)
       {
-        ProjectData wData = prjList[i];
+        ProjectData wData = ProjectController.ProjectDataList[i];
 
         LayoutControlItem item = lcgProject.AddItem();
         item.Padding = new DevExpress.XtraLayout.Utils.Padding(3, 3, 10, 3);
@@ -967,23 +968,19 @@ namespace WeavingGenerator
     ///////////////////////////////////////////////////////////////////////
     public ProjectData GetProjectData()
     {
-      return this.GetProjectData(SELECTED_IDX);
+      return ProjectController.GetProjectData();
     }
     public void UpdateProjectData()
     {
-      ProjectData obj = this.GetProjectData(SELECTED_IDX);
-      UpdateDAOProjectData(SELECTED_IDX, obj);
+      ProjectData obj = ProjectController.GetProjectData();
+      UpdateDAOProjectData(ProjectController.SelectedProjectIdx, obj);
       //SetWeaveViewer(SELECTED_IDX, obj);
-      SetProjectData(SELECTED_IDX, obj);
+      SetProjectData(ProjectController.SelectedProjectIdx, obj);
     }
-    public ProjectData GetProjectData(int idx)
-    {
-      List<ProjectData> list = this.GetProjectDataList();
-      return ProjectDataService.GetProjectData(idx, list);
-    }
+    
     public List<ProjectData> GetProjectDataList()
     {
-      return prjList;
+      return ProjectController.ProjectDataList;
     }
     public string GetAPPID()
     {
@@ -1000,7 +997,7 @@ namespace WeavingGenerator
     }
     public void ReloadMapWeave3DViewer()
     {
-      weave3DViewer.ExecuteScriptAsync("ReloadMap2('" + SELECTED_IDX + "', '" + (nCall++) + "');");
+      weave3DViewer.ExecuteScriptAsync("ReloadMap2('" + ProjectController.SelectedProjectIdx + "', '" + (nCall++) + "');");
     }
 
     public string GetMetalFrom3DViewer()
@@ -1180,7 +1177,6 @@ namespace WeavingGenerator
             int idx = Convert.ToInt32(row["IDX"]);
             string projectDataString = row["PROJECT_DATA"].ToString();
 
-            ///ProjectData data = MainForm.ParseProjectData(projectDataString);
             ProjectData data = ProjectDataParser.Parse(projectDataString);
             data.Idx = idx;
             list.Add(data);
@@ -1235,16 +1231,15 @@ namespace WeavingGenerator
     public void UpdateDAOProjectData(int idx, ProjectData data)
     {
       string name = data.Name;
-      string reg_dt = data.Reg_dt;
-      //string jsonData = MainForm.ParseJson(data);
+      string reg_dt = data.Reg_dt;      
       string jsonData = data.SerializeJson();
 
       try
       {
         Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("name", name);
-        paramMap.Add("project_data", jsonData);
-        paramMap.Add("idx", idx);
+        paramMap.Add("@name", name);
+        paramMap.Add("@project_data", jsonData);
+        paramMap.Add("@idx", idx);
 
         DBConn.Instance.update("update_tb_project_by_idx", paramMap);
       }
@@ -1261,7 +1256,7 @@ namespace WeavingGenerator
       try
       {
         Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("idx", idx);
+        paramMap.Add("@idx", idx);
         DBConn.Instance.delete("delete_tb_project_by_idx", paramMap);
       }
       catch (Exception ex)
@@ -1295,14 +1290,14 @@ namespace WeavingGenerator
         name = Util.AddSlashes(name);
 
         Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("name", name);
-        paramMap.Add("weight", weight);
-        paramMap.Add("unit", unit);
-        paramMap.Add("type", type);
-        paramMap.Add("textured", textured);
-        paramMap.Add("metal", metal);
-        paramMap.Add("image", image);
-        paramMap.Add("reg_dt", reg_dt);
+        paramMap.Add("@name", name);
+        paramMap.Add("@weight", weight);
+        paramMap.Add("@unit", unit);
+        paramMap.Add("@type", type);
+        paramMap.Add("@textured", textured);
+        paramMap.Add("@metal", metal);
+        paramMap.Add("@image", image);
+        paramMap.Add("@reg_dt", reg_dt);
 
         int nRow = DBConn.Instance.insert("insert_tb_yarn", paramMap);
         if (nRow == 0)
@@ -1350,14 +1345,14 @@ namespace WeavingGenerator
         name = Util.AddSlashes(name);
 
         Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("name", name);
-        paramMap.Add("weight", weight);
-        paramMap.Add("unit", unit);
-        paramMap.Add("type", type);
-        paramMap.Add("textured", textured);
-        paramMap.Add("metal", metal);
-        paramMap.Add("image", image);
-        paramMap.Add("idx", idx);
+        paramMap.Add("@name", name);
+        paramMap.Add("@weight", weight);
+        paramMap.Add("@unit", unit);
+        paramMap.Add("@type", type);
+        paramMap.Add("@textured", textured);
+        paramMap.Add("@metal", metal);
+        paramMap.Add("@image", image);
+        paramMap.Add("@idx", idx);
 
         int nCount = DBConn.Instance.update("update_tb_yarn_by_idx", paramMap);
         if (nCount == 0)
@@ -1417,7 +1412,7 @@ namespace WeavingGenerator
       try
       {
         Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("idx", idx);
+        paramMap.Add("@idx", idx);
 
         int affectedRows = DBConn.Instance.update("soft_delete_tb_yarn_by_idx", paramMap);
         if (affectedRows == 0)
@@ -1538,19 +1533,34 @@ namespace WeavingGenerator
         }
       }
     }
+    //-----------------------------------------------------------------------
+    public int CreateProject(string name)
+    {
+      ProjectData data = ProjectController.CreateDefaultProjectData(name);
+      var json = data.SerializeJson();
+      int idx = ProjectController.SaveDAOProjectData(name, json);
+      data.Idx = idx;
 
+      ProjectController.ProjectDataList.Insert(0, data);
 
+      UpdateProjectView();
+//      SetProjectData(idx, data);
+
+      return idx;
+    }
+    //-----------------------------------------------------------------------
     public void OpenProject(int idx)
     {
-      ProjectData data = this.GetProjectData(idx);
+      ProjectData data = ProjectController.GetProjectData(idx);
       SetSelectedProjectButton(idx);
       SetProjectData(idx, data);
     }
+
+    //-----------------------------------------------------------------------
     private void SaveProject()
     {
       IsModified = false;
-
-      ///////////////////////////////////////////////////////////////////
+    
       string name = textEdit_Name.Text;
       //string optionMetal = comboBoxEdit_OptionMetal.Text;
       string optionMetal = "FD";
@@ -1559,9 +1569,8 @@ namespace WeavingGenerator
         //오류창
         return;
       }
-
-      ProjectData data = this.GetProjectData(SELECTED_IDX);
-
+      
+      ProjectData data = ProjectController.GetProjectData();
       data.Name = name;
       data.OptionMetal = optionMetal;
 
@@ -1589,14 +1598,16 @@ namespace WeavingGenerator
       data.PhysicalProperty.BucklingStiffnessWeft = (int)(textEdit_BucklingStiffnessWeft.Value);
       data.PhysicalProperty.BucklingStiffnessWarp = (int)(textEdit_BucklingStiffnessWarp.Value);
 
-      UpdateDAOProjectData(SELECTED_IDX, data);
+      UpdateDAOProjectData(ProjectController.SelectedProjectIdx, data);
 
       SaveAllProject();
     }
+    //-----------------------------------------------------------------------
     private void SaveAllProject()
     {
       IsModified = false;
 
+      var prjList = ProjectController.ProjectDataList;
       for (int i = 0; i < prjList.Count; i++)
       {
         ProjectData obj = prjList[i];
@@ -1607,34 +1618,29 @@ namespace WeavingGenerator
     }
     public void RemoveProject(int idx)
     {
-      for (int i = 0; i < prjList.Count; i++)
-      {
-        ProjectData w = prjList[i];
-        if (w.Idx == idx)
-        {
-          prjList.RemoveAt(i);
-          break;
-        }
-      }
-      RemoveDAOWeavingData(idx);
-      //InitProjectView();
+      ProjectController.RemoveProjectData(idx);
+      RemoveDAOWeavingData(idx);     
       RemoveProjectButton(idx);
 
-      if (idx == SELECTED_IDX)
+      if (idx == ProjectController.SelectedProjectIdx)
       {
-        SELECTED_IDX = -1;
+        ProjectController.SelectedProjectIdx = -1;
         ResetViewer();
       }
     }
+
+    //---------------------------------------------------------------------
     public void UpdateProject()
     {
       //wDataList = ListDAOWeavingData();
       UpdateProjectView();
-      if (SELECTED_IDX != -1)
+      if (ProjectController.SelectedProjectIdx != -1)
       {
-        OpenProject(SELECTED_IDX);
+        OpenProject(ProjectController.SelectedProjectIdx);
       }
     }
+
+    //---------------------------------------------------------------------
     private void DataRecevieEvent(string data)
     {
       if (data.Equals("Y"))
@@ -1650,6 +1656,7 @@ namespace WeavingGenerator
       ExitApp();
     }
 
+    //---------------------------------------------------------------------
     private void ExitApp()
     {
       IsModified = false;
@@ -1667,6 +1674,7 @@ namespace WeavingGenerator
       }
     }
 
+    //---------------------------------------------------------------------
     private void QuitProcess()
     {
       try
@@ -1812,7 +1820,7 @@ namespace WeavingGenerator
 
           // patternViewer1.Generate3DImage(""); // 필요시 복구
           weave2DViewer.RepaintCanvas();
-          weave3DViewer.ExecuteScriptAsync("ReloadMap2('" + SELECTED_IDX + "', '" + (nCall++) + "');");
+          weave3DViewer.ExecuteScriptAsync("ReloadMap2('" + ProjectController.SelectedProjectIdx + "', '" + (nCall++) + "');");
 
           CloseProgressForm();
         });
@@ -1836,14 +1844,14 @@ namespace WeavingGenerator
     {
       //ProjectData data = MainForm.ParseProjectData(jsonData);
       ProjectData data = ProjectDataParser.Parse(jsonData);
-      SetProjectData(SELECTED_IDX, data);
+      SetProjectData(ProjectController.SelectedProjectIdx, data);
     }
 
     public void SetProjectData(int idx, ProjectData data)
     {
       if (data == null) return;
 
-      this.SELECTED_IDX = idx;
+      ProjectController.SelectedProjectIdx = idx;
 
       ///////////////////////////////////////////////////////////////////
       // 시작 - 컨트롤 설정
@@ -1928,8 +1936,9 @@ namespace WeavingGenerator
       ///////////////////////////////////////////////////////////////////
       // 뷰어 설정
       ///////////////////////////////////////////////////////////////////
-      SetWeaveViewer(SELECTED_IDX, data);
+      SetWeaveViewer(ProjectController.SelectedProjectIdx, data);
     }
+
     private void SetFullScale(bool full)
     {
       int n = comboBoxEdit_Scale.SelectedIndex;
@@ -2004,7 +2013,7 @@ namespace WeavingGenerator
       ///////////////////////////////////////////////////////////////////
       //
       ///////////////////////////////////////////////////////////////////
-      ProjectData data = this.GetProjectData(SELECTED_IDX);
+      ProjectData data = ProjectController.GetProjectData();
       if (data == null) return;
 
       data.Pattern = pattern;
@@ -2014,7 +2023,7 @@ namespace WeavingGenerator
       ///////////////////////////////////////////////////////////////////
       textEdit_Pattern.Text = pattern.Name;
 
-      SetWeaveViewer(SELECTED_IDX, data);
+      SetWeaveViewer(ProjectController.SelectedProjectIdx, data);
     }
     public void ResetViewScale()
     {
@@ -2101,17 +2110,6 @@ namespace WeavingGenerator
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
     ///////////////////////////////////////////////////////////////////////
     ///  EVENT 시작
     ///////////////////////////////////////////////////////////////////////
@@ -2120,35 +2118,37 @@ namespace WeavingGenerator
     {
       ProjectButton btn = (ProjectButton)sender;
 
-      if (SELECTED_IDX == btn.Idx) return;
+      if (ProjectController.SelectedProjectIdx == btn.Idx) return;
       int idx = btn.Idx;
 
-      ProjectData data = this.GetProjectData(idx);
+      ProjectData data = ProjectController.GetProjectData(idx);
       if (data == null) return;
 
       SetProjectData(idx, data);
     }
+
+    //-----------------------------------------------------------------------
     private void textEdit_Name_TextChanged(object sender, EventArgs e)
     {
-      if (SELECTED_IDX < 0)
+      if (ProjectController.SelectedProjectIdx < 0)
       {
         return;
       }
-      ProjectData data = this.GetProjectData(SELECTED_IDX);
+      ProjectData data = ProjectController.GetProjectData();
       if (data == null) return;
 
       //Trace.WriteLine("textEdit_Name : " + textEdit_Name.Text);
       data.Name = textEdit_Name.Text;
-      UpdateProjectButton(SELECTED_IDX, data.Name);
+      UpdateProjectButton(ProjectController.SelectedProjectIdx, data.Name);
     }
 
     private void SpinEdit_WarpDensity_ValueChanged(object sender, EventArgs e)
     {
-      if (SELECTED_IDX < 0)
+      if (ProjectController.SelectedProjectIdx < 0)
       {
         return;
       }
-      ProjectData data = this.GetProjectData(SELECTED_IDX);
+      ProjectData data = ProjectController.GetProjectData();
       if (data == null) return;
 
       Warp warp = data.Warp;
@@ -2159,16 +2159,16 @@ namespace WeavingGenerator
       if (oldValue != newValue)
       {
         warp.Density = Util.ToInt(spinEdit_WarpDensity.Text, 50);
-        SetWeaveViewer(SELECTED_IDX, data);
+        SetWeaveViewer(ProjectController.SelectedProjectIdx, data);
       }
     }
     private void SpinEdit_WeftDensity_ValueChanged(object sender, EventArgs e)
     {
-      if (SELECTED_IDX < 0)
+      if (ProjectController.SelectedProjectIdx < 0)
       {
         return;
       }
-      ProjectData data = this.GetProjectData(SELECTED_IDX);
+      ProjectData data = ProjectController.GetProjectData();
       if (data == null) return;
 
       Weft weft = data.Weft;
@@ -2180,7 +2180,7 @@ namespace WeavingGenerator
       if (oldValue != newValue)
       {
         weft.Density = Util.ToInt(spinEdit_WeftDensity.Text, 50);
-        SetWeaveViewer(SELECTED_IDX, data);
+        SetWeaveViewer(ProjectController.SelectedProjectIdx, data);
       }
 
     }
@@ -2231,35 +2231,35 @@ namespace WeavingGenerator
     {
       // 임시
       DialogJsonData dialog = new DialogJsonData(this);
-      //string json = ParseJson(this.GetProjectData(SELECTED_IDX));
-      string json = this.GetProjectData(SELECTED_IDX).SerializeJson();
+      
+      string json = ProjectController.GetProjectData().SerializeJson();
       dialog.SetJsonData(json);
       dialog.ShowDialog();
     }
     private void btnWarpClick(object sender, EventArgs e)
     {
-      DialogWarpInfo dialog = new DialogWarpInfo(this, this.GetProjectData(SELECTED_IDX));
+      DialogWarpInfo dialog = new DialogWarpInfo(this, ProjectController.GetProjectData());
       dialog.StartPosition = FormStartPosition.Manual;
       dialog.Location = GetChildFormLocation();
       dialog.ShowDialog();
     }
     private void btnWeftArrayClick(object sender, EventArgs e)
     {
-      DialogWeftArray dialog = new DialogWeftArray(this, this.GetProjectData(SELECTED_IDX));
+      DialogWeftArray dialog = new DialogWeftArray(this, ProjectController.GetProjectData());
       dialog.StartPosition = FormStartPosition.Manual;
       dialog.Location = GetChildFormLocation();
       dialog.ShowDialog();
     }
     private void btnWeftClick(object sender, EventArgs e)
     {
-      DialogWeftInfo dialog = new DialogWeftInfo(this, this.GetProjectData(SELECTED_IDX));
+      DialogWeftInfo dialog = new DialogWeftInfo(this, ProjectController.GetProjectData());
       dialog.StartPosition = FormStartPosition.Manual;
       dialog.Location = GetChildFormLocation();
       dialog.ShowDialog();
     }
     private void btnWarpArrayClick(object sender, EventArgs e)
     {
-      DialogWarpArray dialog = new DialogWarpArray(this, this.GetProjectData(SELECTED_IDX));
+      DialogWarpArray dialog = new DialogWarpArray(this, ProjectController.GetProjectData());
       dialog.StartPosition = FormStartPosition.Manual;
       dialog.Location = GetChildFormLocation();
       dialog.ShowDialog();
@@ -2302,7 +2302,7 @@ namespace WeavingGenerator
         weave2DViewer.SetYarnDyeColor(wData.DyeColor);
       }
 
-      weave2DViewer.SetProjectData(SELECTED_IDX, GetProjectData());
+      weave2DViewer.SetProjectData(ProjectController.SelectedProjectIdx, GetProjectData());
       ThreadViewerRepaint();
     }
 
@@ -2352,11 +2352,11 @@ namespace WeavingGenerator
 
       }
 
-      weave2DViewer.SetProjectData(SELECTED_IDX, GetProjectData());
+      weave2DViewer.SetProjectData(ProjectController.SelectedProjectIdx, GetProjectData());
       ThreadViewerRepaint();
     }
 
-
+    // menu.new_project
     private void barButtonItem_NewProject_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
     {
       DialogNewProject dialog = new DialogNewProject(this);
@@ -2370,6 +2370,8 @@ namespace WeavingGenerator
       SetSelectedProjectButton(newIdx);
       //SetProjectData(tempRunIdx, tempRunWData);
     }
+    
+    // menu.open
     private void barButtonItem_OpenProject_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
     {
       DialogProjectList dialog = new DialogProjectList(this);
@@ -2379,7 +2381,7 @@ namespace WeavingGenerator
       dialog.ShowDialog();
     }
     private void EventOpenProject(object sender, int openIdx)
-    {
+    {      
       OpenProject(openIdx);
     }
 
@@ -2435,7 +2437,7 @@ namespace WeavingGenerator
     }
     private void EventUpdateDensity(object sender, int newIdx)
     {
-      ProjectData data = this.GetProjectData(newIdx);
+      ProjectData data = ProjectController.GetProjectData(newIdx);
       if (data == null) return;
 
       spinEdit_WarpDensity.Text = data.Warp.Density.ToString();
@@ -2444,7 +2446,7 @@ namespace WeavingGenerator
     }
     private void barButtonItem_OpenWarp_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
     {
-      DialogWarpInfo dialog = new DialogWarpInfo(this, this.GetProjectData(SELECTED_IDX));
+      DialogWarpInfo dialog = new DialogWarpInfo(this, ProjectController.GetProjectData());
       dialog.StartPosition = FormStartPosition.Manual;
       dialog.Location = GetChildFormLocation();
       dialog.ShowDialog();
@@ -2452,7 +2454,7 @@ namespace WeavingGenerator
 
     private void barButtonItem_OpenWarpArray_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
     {
-      DialogWarpArray dialog = new DialogWarpArray(this, this.GetProjectData(SELECTED_IDX));
+      DialogWarpArray dialog = new DialogWarpArray(this, ProjectController.GetProjectData());
       dialog.StartPosition = FormStartPosition.Manual;
       dialog.Location = GetChildFormLocation();
       dialog.ShowDialog();
@@ -2460,7 +2462,7 @@ namespace WeavingGenerator
 
     private void barButtonItem_OpenWeft_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
     {
-      DialogWeftInfo dialog = new DialogWeftInfo(this, this.GetProjectData(SELECTED_IDX));
+      DialogWeftInfo dialog = new DialogWeftInfo(this, ProjectController.GetProjectData());
       dialog.StartPosition = FormStartPosition.Manual;
       dialog.Location = GetChildFormLocation();
       dialog.ShowDialog();
@@ -2468,7 +2470,7 @@ namespace WeavingGenerator
 
     private void barButtonItem_OpenWeftArray_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
     {
-      DialogWeftArray dialog = new DialogWeftArray(this, this.GetProjectData(SELECTED_IDX));
+      DialogWeftArray dialog = new DialogWeftArray(this, ProjectController.GetProjectData());
       dialog.StartPosition = FormStartPosition.Manual;
       dialog.Location = GetChildFormLocation();
       dialog.ShowDialog();
@@ -2501,8 +2503,8 @@ namespace WeavingGenerator
         return;
       }
 
-      string diffFilePath = MainForm.WWWROOT_PATH + "\\diff_" + SELECTED_IDX + ".png";
-      string printFilePath = MainForm.WWWROOT_PATH + "\\diff_" + SELECTED_IDX + "_Print.png";
+      string diffFilePath = MainForm.WWWROOT_PATH + "\\diff_" + ProjectController.SelectedProjectIdx + ".png";
+      string printFilePath = MainForm.WWWROOT_PATH + "\\diff_" + ProjectController.SelectedProjectIdx + "_Print.png";
 
       // 100 px * 100 px , 96 dpi 는 인쇄시 약 1인치에 해당함
       ProjectData weaveData = GetProjectData();
@@ -2765,7 +2767,7 @@ namespace WeavingGenerator
 
     private void barButtonItem_Link_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
     {
-      ProjectData data = this.GetProjectData(SELECTED_IDX);
+      ProjectData data = ProjectController.GetProjectData();
       if (data == null)
       {
         XtraMessageBox.Show("프로젝트 생성 후 이용해주세요..", "Error");
@@ -3084,7 +3086,7 @@ namespace WeavingGenerator
               this.BeginInvoke((System.Action)(() =>
               {
                 CloseProgressForm();
-                if (prjList.Count <= 0)
+                if (ProjectController?.ProjectDataList.Count <= 0)
                 {
                   DialogNewProject dialog = new DialogNewProject(this);
                   dialog.StartPosition = FormStartPosition.Manual;
@@ -3093,7 +3095,7 @@ namespace WeavingGenerator
                   dialog.ShowDialog();
                 }
 
-                weave3DViewer.ExecuteScriptAsync($"ReloadMap2('{SELECTED_IDX}', '{nCall++}');");
+                weave3DViewer.ExecuteScriptAsync($"ReloadMap2('{ProjectController.SelectedProjectIdx}', '{nCall++}');");
               }));
             }
 

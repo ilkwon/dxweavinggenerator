@@ -15,74 +15,50 @@ namespace WeavingGenerator.Controllers
   public class ProjectController
   {
     private const string Default_DyeColor = "#255,255,255,255";
-    public List<ProjectData> ProjectList => prjList;
-    private List<ProjectData> prjList = new();
-    private int SELECTED_IDX = -1;
+    
+    
+    private static int _selectedProjectIdx = -1;
+    public static int SelectedProjectIdx
+    {
+      get => _selectedProjectIdx;
+      set => _selectedProjectIdx = value;
+    }
     //-----------------------------------------------------------------------
+    private List<ProjectData> prjList = new();
     public ProjectController()
     {
       prjList = ProjectDataRepository.ListDAOProjectData();
     }
-    public ProjectData GetProjectData() => GetProjectData(SELECTED_IDX);
+    public List<ProjectData> ProjectDataList => prjList;
+    public ProjectData GetProjectData() => GetProjectData(_selectedProjectIdx);
     public ProjectData GetProjectData(int idx)
     {
-      return ProjectDataService.GetProjectData(idx, prjList);
+      for (int i = 0; i < prjList.Count; i++)
+      {
+        ProjectData data = prjList[i];
+        if (data.Idx == idx)
+          return data;
+      }
+      return null;
     }
     
-    //-----------------------------------------------------------------------
-    public int CreateProject(string name)
+    public void RemoveProjectData(int idx)
     {
-      var data = CreateDefaultProjectData(name);
-      var json = data.SerializeJson();
-      int idx = SaveDAOProjectData(name, json);
-      data.Idx = idx;
-
-      prjList.Insert(0, data);
-      
-      return idx;
-    }
-    //-----------------------------------------------------------------------
-    public ProjectData OpenProject(int idx)
-    {
-      return GetProjectData(idx);
-      //SetSelectedProjectButton(idx); // UI 관련 부분은 나중에 분리
-      //SetProjectData(idx, data);
-    }
-    //-----------------------------------------------------------------------
-    private void SaveAllProject()
-    {
-      foreach (var obj in prjList)
+      for (int i = 0; i < prjList.Count; i++)
       {
-        UpdateDAOProjectData(obj.Idx, obj);
+        var data = prjList[i];
+        if (data.Idx == idx)
+        {
+          prjList.RemoveAt(i);
+          break;
+        }
       }
     }
-    //-----------------------------------------------------------------------
-    public void RemoveProject(int idx)
-    {
-      prjList.RemoveAll(p => p.Idx == idx);
-      RemoveDAOWeavingData(idx);
-      RemoveProjectButton(idx);
 
-      if (idx == SELECTED_IDX)
-      {
-        SELECTED_IDX = -1;
-        ResetViewer();
-      }
-    }
-    //-----------------------------------------------------------------------
-    public void UpdateProject()
-    {
-      UpdateProjectView();
-      if (SELECTED_IDX != -1)
-      {
-        var data = OpenProject(SELECTED_IDX);
-
-      }
-    }
     //-----------------------------------------------------------------------
     public ProjectData GetDAOProjectData(int idx)
     {
-      var paramMap = new Dictionary<string, object> { { "IDX", idx } };
+      var paramMap = new Dictionary<string, object> { { "@idx", idx } };
       var dataResult = DBConn.Instance.select("select_tb_project_by_idx", paramMap);
       if (dataResult?.Count > 0)
       {
@@ -94,14 +70,14 @@ namespace WeavingGenerator.Controllers
       return null;
     }
     //-----------------------------------------------------------------------
-    private int SaveDAOProjectData(string name, string projectJson)
+    public int SaveDAOProjectData(string name, string projectJson)
     {
       int idx = -1;
       var paramMap = new Dictionary<string, object>
       {
-        { "name", name },
-        { "reg_dt", DateTime.Now.ToString("yyyyMMddHHmmss") },
-        { "project_data", projectJson }
+        { "@name", name },
+        { "@reg_dt", DateTime.Now.ToString("yyyyMMddHHmmss") },
+        { "@project_data", projectJson }
       };
 
       DBConn.Instance.insert("insert_tb_project", paramMap);
@@ -116,7 +92,7 @@ namespace WeavingGenerator.Controllers
       try
       {
         Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("idx", idx);
+        paramMap.Add("@idx", idx);
         DBConn.Instance.delete("delete_tb_project_by_idx", paramMap);
       }
       catch (Exception ex)
@@ -130,9 +106,9 @@ namespace WeavingGenerator.Controllers
     {
       var paramMap = new Dictionary<string, object>
       {
-        { "name", data.Name },
-        { "project_data", data.SerializeJson() },
-        { "idx", idx }
+        { "@name", data.Name },
+        { "@project_data", data.SerializeJson() },
+        { "@idx", idx }
       };
       DBConn.Instance.update("update_tb_project_by_idx", paramMap);
     }
@@ -153,12 +129,8 @@ namespace WeavingGenerator.Controllers
 
     public ProjectData CreateDefaultProjectData(string name)
     {
-      return ProjectDataParser.Parse(CreateDefaultProjectDataFromJsonFile(name));
+      string str = CreateDefaultProjectDataFromJsonFile(name);
+      return ProjectDataParser.Parse(str);
     }
-
-    private void SetSelectedProjectButton(int idx) { /* ... */ }
-    private void RemoveProjectButton(int idx) { /* ... */ }
-    private void ResetViewer() { /* ... */ }
-    private void UpdateProjectView() { /* ... */ }
   }
 }

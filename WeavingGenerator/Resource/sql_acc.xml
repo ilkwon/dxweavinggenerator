@@ -52,7 +52,7 @@
 			WHERE IDX = @idx;
 	</select>
 
-	<select		id="select_project_list">
+	<select id="select_project_list">
 		SELECT
 			IDX,
 			NAME,

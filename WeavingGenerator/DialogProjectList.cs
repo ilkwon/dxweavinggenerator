@@ -318,7 +318,7 @@ namespace WeavingGenerator
             for(int i =  0; i < deleteList.Count; i++)
             {
                 int deleteIdx = deleteList[i];
-                mainForm.ProjectController.RemoveProject(deleteIdx);
+                mainForm.RemoveProject(deleteIdx);
             }
 
             // 업데이트 데이터

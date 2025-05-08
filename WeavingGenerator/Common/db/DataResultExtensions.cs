@@ -16,9 +16,9 @@ namespace Jm.DBConn
         Count = 1,
         Data = new List<Dictionary<string, object>> {
             new Dictionary<string, object> {
-                { "IDX", 1 },
-                { "NAME", "직물 프로젝트" },
-                { "REG_DT", "20250425" }
+                { "@IDX", 1 },
+                { "@NAME", "직물 프로젝트" },
+                { "@REG_DT", "20250425" }
             }
         }
     };

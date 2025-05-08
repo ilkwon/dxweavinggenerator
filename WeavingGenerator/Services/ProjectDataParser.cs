@@ -51,8 +51,8 @@ namespace WeavingGenerator.Services
     //-----------------------------------------------------------------------
     private static bool ParseYarnDyed(JObject root)
     {
-      var value = root["YarnDyed"]?.ToString();
-      return string.IsNullOrEmpty(value) || value == "Y";
+      var value = root["YarnDyed"]?.ToString()?.Trim().ToUpperInvariant();
+      return value == "Y" || value == "TRUE";
     }
     //-----------------------------------------------------------------------
     private static string ParseDyeColor(JObject root, bool yardDyed)
