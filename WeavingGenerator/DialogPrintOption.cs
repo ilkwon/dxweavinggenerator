@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using WeavingGenerator.ProjectDatas;
 namespace WeavingGenerator
 {
   public partial class DialogPrintOption : DevExpress.XtraEditors.XtraForm

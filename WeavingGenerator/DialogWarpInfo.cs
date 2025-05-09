@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using WeavingGenerator.ProjectDatas;
 
 namespace WeavingGenerator
 {
@@ -87,7 +88,7 @@ namespace WeavingGenerator
                 return;
             }
             // 원사 정보 초기화
-            yarnList = mainForm.ListDAOYarn();
+            yarnList = Yarn.DAO.SelectAll();
 
             // 경사 정보 초기화
             wInfoTempList = ToWInfoTempList(wData.Warp);
@@ -236,7 +237,7 @@ namespace WeavingGenerator
                 yarnList.Clear();
             }
             tb.Rows.Clear();
-            yarnList = mainForm.ListDAOYarn();
+            yarnList = Yarn.DAO.SelectAll();
 
 
             // 데이터 갱신
@@ -353,7 +354,7 @@ namespace WeavingGenerator
             int oldIdxYarn = wInfo.IdxYarn;
 
             // 원사 정보 초기화
-            yarnList = mainForm.ListDAOYarn();
+            yarnList = Yarn.DAO.SelectAll();
             if(oldIdxYarn != idxYarn)
             {
                 string yarnName = GetYarnName(idxYarn);

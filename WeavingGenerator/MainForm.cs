@@ -1,9 +1,7 @@
 ﻿using CefSharp;
 using DevExpress.ClipboardSource.SpreadsheetML;
 using DevExpress.DataAccess.Json;
-using DevExpress.DataProcessing.InMemoryDataProcessor;
-using DevExpress.Utils.Helpers;
-using DevExpress.XtraDiagram.Base;
+
 using DevExpress.XtraEditors;
 using DevExpress.XtraEditors.ColorPick.Picker;
 using DevExpress.XtraEditors.Repository;
@@ -28,8 +26,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
-using WeavingGenerator.Services;
+using WeavingGenerator.ProjectDatas;
 using WeavingGenerator.Views;
 
 //using WeavingGenerator.ViewModels;
@@ -38,7 +35,7 @@ namespace WeavingGenerator
   public partial class MainForm : DevExpress.XtraEditors.XtraForm
   {
     public BasicView Basic { get; private set; }
-    
+
     public static String Default_DyeColor = "#255,255,255,255";
     //private MainViewModel viewModel;
     ///////////////////////////////////////////////////////////////////////
@@ -66,7 +63,7 @@ namespace WeavingGenerator
     ///////////////////////////////////////////////////////////////////////
     /// WeavingData
     ///////////////////////////////////////////////////////////////////////
-    
+
     //ProjectData SELECTED_PRJ = null;
 
 
@@ -93,7 +90,7 @@ namespace WeavingGenerator
         return cp;
       }
     }
-    
+
     public ProjectController ProjectController => Controllers.Instance.ProjectController;
 
     public MainForm()
@@ -110,7 +107,7 @@ namespace WeavingGenerator
 
       //DB 커넥션 세팅
       db = DBConn.Instance;
-      
+
     }
     private ProjectDataView _dataView;
     public void InitialieViewer()
@@ -122,7 +119,7 @@ namespace WeavingGenerator
         colorEdit_DyeColor,
         comboBoxEdit_Scale
       );
-      
+
       _dataView = new ProjectDataView(Basic);
     }
     private void MainForm_Load(object sender, EventArgs e)
@@ -220,7 +217,7 @@ namespace WeavingGenerator
       public int Idx { get; set; }
     }
     LayoutControlGroup lcgProject;
-    public 
+    public
     //기본정보
     TextEdit textEdit_Name;
     TextEdit textEdit_BasicInfoRegDt;
@@ -948,10 +945,6 @@ namespace WeavingGenerator
 
 
 
-
-
-
-
     ///////////////////////////////////////////////////////////////////////
     // 시작 - 외부 인터페이스
     ///////////////////////////////////////////////////////////////////////
@@ -962,11 +955,11 @@ namespace WeavingGenerator
     public void UpdateProjectData()
     {
       ProjectData obj = ProjectController.GetProjectData();
-      UpdateDAOProjectData(ProjectController.SelectedProjectIdx, obj);
+      ProjectData.DAO.Update(ProjectController.SelectedProjectIdx, obj);
       //SetWeaveViewer(SELECTED_IDX, obj);
       SetProjectData(ProjectController.SelectedProjectIdx, obj);
     }
-    
+
     public List<ProjectData> GetProjectDataList()
     {
       return ProjectController.ProjectDataList;
@@ -1025,403 +1018,30 @@ namespace WeavingGenerator
       }
       return "cube";
     }
+
+    //---------------------------------------------------------------------
     bool isVisibleWarpOfPrint = false;
     public void SetPrintOptionWarpVisible(bool b)
     {
       isVisibleWarpOfPrint = b;
     }
-    ///////////////////////////////////////////////////////////////////////
-    // 시작 - 외부 인터페이스
-    ///////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-    ///////////////////////////////////////////////////////////////////////
-    // 시작 - DAO
-    ///////////////////////////////////////////////////////////////////////
-
+    //---------------------------------------------------------------------
+    // 시작 - DAO    
     private void InitDAO()
     {
       try
       {
-        // 게시 제품이름
-        string szProductName = "WeavingGenerator";
-        // Database 이름
-        string szDBFileName = "weaving_ver1.db";
-        // Database 지정할 경로
-        string szExecutablePath = String.Format(@"{0}\{1}", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), szProductName);
-        DirectoryInfo di = new DirectoryInfo(szExecutablePath);
-        if (!di.Exists)
-        {
-          // 생성
-          Directory.CreateDirectory(szExecutablePath);
-        }
-
-        // Database 지정할 경로 + Database 이름
-        string szDBFile = String.Format(@"{0}\{1}", szExecutablePath, szDBFileName);
-
-        DateTime dt = DateTime.Now;
-        string reg_dt = dt.ToString("yyyyMMddhhmmss");
-
-        // sqlite.db가 해당 경로 폴더 안에 있는지 체크
-        if (!System.IO.File.Exists(szDBFile))
-        {
-          SQLiteConnection.CreateFile(szDBFile);
-
-          db.Init(null, szDBFile, "Resource/sql_acc.xml", null, null, null);
-          ///////////////////////////////////////////////////////////
-          // APP
-          ///////////////////////////////////////////////////////////
-          DBConn.Instance.create("create_tb_app");
-
-          this.APPID = Util.GenerateUUID();
-          Trace.WriteLine("strUUID : " + this.APPID);
-
-          // INSERT
-          Dictionary<string, object> param = new Dictionary<string, object>
-                    {
-                        { "@appid", this.APPID },
-                        { "@reg_dt", reg_dt }
-                    };
-          DBConn.Instance.insert("insert_tb_app", param);
-
-          ///////////////////////////////////////////////////////////
-          // TB_PROJECT                    
-          ///////////////////////////////////////////////////////////
-          DBConn.Instance.create("create_tb_project");
-
-
-          ///////////////////////////////////////////////////////////
-          // TB_YARN
-          ///////////////////////////////////////////////////////////
-          DBConn.Instance.create("create_tb_yarn");
-        }
-
-        db.Init(null, szDBFile, "Resource/sql_acc.xml", null, null, null);
-
-        // ilkwon test code end -----------------------------------------
-        this.APPID = GetDAOAPPID();
+        this.APPID = AppInitializer.Initialize();
+        Trace.WriteLine("APPID : " + this.APPID);
       }
       catch (Exception ex)
       {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show(ex.Message);
-      }
-
-    }
-
-    //-------------------------------------------------------------------
-    private string GetDAOAPPID()
-    {
-      string appid = "";
-
-      Dictionary<string, object> paramMap = new Dictionary<string, object>();
-      DataResult dataResult = DBConn.Instance.select("select_tb_appid", paramMap);
-      if (dataResult != null && dataResult.Count > 0)
-      {
-        appid = dataResult.Data[0]["APPID"].ToString();
-      }
-      return appid;
-    }
-
-    //-------------------------------------------------------------------
-    public ProjectData GetDAOProjectData(int idx)
-    {
-      ProjectData data = null;
-
-      Dictionary<string, object> paramMap = new Dictionary<string, object>();
-      paramMap.Add("IDX", idx);
-      DataResult dataResult = DBConn.Instance.select("select_tb_project_by_idx", paramMap);
-      if (dataResult != null && dataResult.Count > 0)
-      {
-        int projectIdx = Convert.ToInt32(dataResult.Data[0]["IDX"]);
-        string projectName = dataResult.Data[0]["NAME"].ToString();
-        string projectData = dataResult.Data[0]["PROJECT_DATA"].ToString();
-
-        //data = MainForm.ParseProjectData(projectData);
-        data = ProjectDataParser.Parse(projectData);
-        data.Idx = idx;
-        Console.WriteLine($"[프로젝트] IDX: {projectIdx}, NAME: {projectName}");
-      }
-
-      return data;
-    }
-
-    //-------------------------------------------------------------------
-    public List<ProjectData> ListDAOProjectData()
-    {
-      List<ProjectData> list = new List<ProjectData>();
-
-      try
-      {
-        Dictionary<string, object> paramMap = new Dictionary<string, object>(); // 파라미터 없음
-        DataResult dataResult = DBConn.Instance.select("select_project_list", paramMap);
-        if (dataResult != null && dataResult.Count > 0)
-        {
-          foreach (var row in dataResult.Data)
-          {
-            int idx = Convert.ToInt32(row["IDX"]);
-            string projectDataString = row["PROJECT_DATA"].ToString();
-
-            ProjectData data = ProjectDataParser.Parse(projectDataString);
-            data.Idx = idx;
-            list.Add(data);
-          }
-        }
-      }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
-      }
-
-      return list;
-    }
-
-    //-------------------------------------------------------------------
-    private int SaveDAOProjectData(string name, string projectData)
-    {
-      int idx = -1;
-      DateTime dt = DateTime.Now;
-      string reg_dt = dt.ToString("yyyyMMddHHmmss"); // HHmmss 대문자(HH)로 24시간 표기
-
-      try
-      {
-        // INSERT
-        Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("name", name);
-        paramMap.Add("reg_dt", reg_dt);
-        paramMap.Add("project_data", projectData);
-
-        DBConn.Instance.insert("insert_tb_project", paramMap);
-
-        // LAST_INSERT_ROWID()
-        Dictionary<string, object> emptyParam = new Dictionary<string, object>();
-        DataResult dataResult = DBConn.Instance.select("select_last_insert_rowid", emptyParam);
-
-        if (dataResult != null && dataResult.Count > 0)
-        {
-          idx = Convert.ToInt32(dataResult.Data[0]["IDX"]);
-        }
-      }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
-      }
-
-      return idx;
-    }
-
-    //-------------------------------------------------------------------
-    public void UpdateDAOProjectData(int idx, ProjectData data)
-    {
-      string name = data.Name;
-      string reg_dt = data.Reg_dt;      
-      string jsonData = data.SerializeJson();
-
-      try
-      {
-        Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("@name", name);
-        paramMap.Add("@project_data", jsonData);
-        paramMap.Add("@idx", idx);
-
-        DBConn.Instance.update("update_tb_project_by_idx", paramMap);
-      }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
+        Trace.WriteLine(ex);
+        XtraMessageBox.Show("DB 초기화 중 오류 발생: " + ex.Message);
       }
     }
-
-    //-------------------------------------------------------------------
-    public void RemoveDAOWeavingData(int idx)
-    {
-      try
-      {
-        Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("@idx", idx);
-        DBConn.Instance.delete("delete_tb_project_by_idx", paramMap);
-      }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
-      }
-    }
-
-    //-------------------------------------------------------------------
-    public int SaveDAOYarn(Yarn yarn)
-    {
-      int idx = -1;
-      DateTime dt = DateTime.Now;
-      try
-      {
-        string name = yarn.Name;
-        string weight = yarn.Weight;
-        string unit = yarn.Unit;
-        string type = yarn.Type;
-        string textured = yarn.Textured;
-        string image = yarn.Image;
-        string metal = yarn.Metal;
-        string reg_dt = dt.ToString("yyyyMMddhhmmss");
-
-        if (string.IsNullOrEmpty(weight)) weight = "50";
-        if (string.IsNullOrEmpty(unit)) unit = "Denier";
-        if (string.IsNullOrEmpty(type)) type = "장섬유";
-        if (string.IsNullOrEmpty(textured)) textured = "Filament";
-
-        name = Util.AddSlashes(name);
-
-        Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("@name", name);
-        paramMap.Add("@weight", weight);
-        paramMap.Add("@unit", unit);
-        paramMap.Add("@type", type);
-        paramMap.Add("@textured", textured);
-        paramMap.Add("@metal", metal);
-        paramMap.Add("@image", image);
-        paramMap.Add("@reg_dt", reg_dt);
-
-        int nRow = DBConn.Instance.insert("insert_tb_yarn", paramMap);
-        if (nRow == 0)
-        {
-          // 갱신 안됨...
-        }
-        // 마지막 Insert ID 가져오기
-        Dictionary<string, object> emptyParam = new Dictionary<string, object>();
-        DataResult dataResult = DBConn.Instance.select("select_last_insert_rowid", emptyParam);
-
-        if (dataResult != null && dataResult.Count > 0)
-        {
-          idx = Convert.ToInt32(dataResult.Data[0]["IDX"]);
-        }
-      }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
-      }
-
-      return idx;
-    }
-    //-------------------------------------------------------------------
-    public bool UpdateDAOYarn(Yarn yarn)
-    {
-      DateTime dt = DateTime.Now;
-      try
-      {
-        int idx = yarn.Idx;
-        string name = yarn.Name;
-        string weight = yarn.Weight;
-        string unit = yarn.Unit;
-        string type = yarn.Type;
-        string textured = yarn.Textured;
-        string metal = yarn.Metal;
-        string image = yarn.Image;
-        string reg_dt = yarn.Reg_dt;
-
-        if (string.IsNullOrEmpty(weight)) weight = "50";
-        if (string.IsNullOrEmpty(unit)) unit = "Denier";
-        if (string.IsNullOrEmpty(type)) type = "장섬유";
-        if (string.IsNullOrEmpty(textured)) textured = "Filament";
-
-        name = Util.AddSlashes(name);
-
-        Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("@name", name);
-        paramMap.Add("@weight", weight);
-        paramMap.Add("@unit", unit);
-        paramMap.Add("@type", type);
-        paramMap.Add("@textured", textured);
-        paramMap.Add("@metal", metal);
-        paramMap.Add("@image", image);
-        paramMap.Add("@idx", idx);
-
-        int nCount = DBConn.Instance.update("update_tb_yarn_by_idx", paramMap);
-        if (nCount == 0)
-        {
-          // 갱신 안됨...
-        }
-      }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
-        return false;
-      }
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------
-    public List<Yarn> ListDAOYarn()
-    {
-      List<Yarn> list = new List<Yarn>();
-
-      try
-      {
-        Dictionary<string, object> paramMap = new Dictionary<string, object>(); // 파라미터 없음
-        DataResult dataResult = DBConn.Instance.select("select_yarn_list", paramMap);
-
-        if (dataResult != null && dataResult.Count > 0)
-        {
-          foreach (var row in dataResult.Data)
-          {
-            Yarn yarn = new Yarn();
-            yarn.Idx = Convert.ToInt32(row["IDX"]);
-            yarn.Name = Util.StripSlashes(row["NAME"].ToString());
-            yarn.Weight = row["WEIGHT"].ToString();
-            yarn.Unit = row["UNIT"].ToString();
-            yarn.Type = row["TYPE"].ToString();
-            yarn.Textured = row["TEXTURED"].ToString();
-            yarn.Metal = row["METAL"].ToString();
-            yarn.Image = row["IMAGE"].ToString();
-            yarn.Reg_dt = row["REG_DT"].ToString();
-            list.Add(yarn);
-          }
-        }
-      }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
-      }
-
-      return list;
-    }
-    //-----------------------------------------------------------
-    public void RemoveDAOYarn(int idx)
-    {
-      try
-      {
-        Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("@idx", idx);
-
-        int affectedRows = DBConn.Instance.update("soft_delete_tb_yarn_by_idx", paramMap);
-        if (affectedRows == 0)
-        {
-          // 삭체된게 없음.
-        }
-      }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
-      }
-
-    }
-    ///////////////////////////////////////////////////////////////////////
-    // 끝 - DAO
-    ///////////////////////////////////////////////////////////////////////
-
-
-
+    //---------------------------------------------------------------------
     private void InitPatternList()
     {
       string json = Properties.Resources.PatternList;
@@ -1478,25 +1098,6 @@ namespace WeavingGenerator
 
     }
 
-    public void checkbox_CheckedChanged(object sender, EventArgs e)
-    {
-      /*
-      MyRadioButton btn = (MyRadioButton)sender;
-      if (btn.Checked == false) return;
-
-      //Trace.WriteLine("btn.Idx : " + btn.Idx);
-      int idx = btn.Idx;
-
-      string json = GetDAOWeavingData(idx);
-      if (string.IsNullOrEmpty(json)) return;
-
-      WeavingData data = ParseWeavingData(json);
-      if (data == null) return;
-
-      SetWeavingData(idx, data);
-      */
-    }
-
 
     ///////////////////////////////////////////////////////////////////////
     /// 저장 프로세스
@@ -1527,13 +1128,13 @@ namespace WeavingGenerator
     {
       ProjectData data = ProjectController.CreateDefaultProjectData(name);
       var json = data.SerializeJson();
-      int idx = ProjectController.SaveDAOProjectData(name, json);
+      int idx = ProjectData.DAO.Insert(name, json);
       data.Idx = idx;
 
       ProjectController.ProjectDataList.Insert(0, data);
 
       UpdateProjectView();
-//      SetProjectData(idx, data);
+      //      SetProjectData(idx, data);
 
       return idx;
     }
@@ -1549,7 +1150,7 @@ namespace WeavingGenerator
     private void SaveProject()
     {
       IsModified = false;
-    
+
       string name = textEdit_Name.Text;
       //string optionMetal = comboBoxEdit_OptionMetal.Text;
       string optionMetal = "FD";
@@ -1558,7 +1159,7 @@ namespace WeavingGenerator
         //오류창
         return;
       }
-      
+
       ProjectData data = ProjectController.GetProjectData();
       data.Name = name;
       data.OptionMetal = optionMetal;
@@ -1587,7 +1188,7 @@ namespace WeavingGenerator
       data.PhysicalProperty.BucklingStiffnessWeft = (int)(textEdit_BucklingStiffnessWeft.Value);
       data.PhysicalProperty.BucklingStiffnessWarp = (int)(textEdit_BucklingStiffnessWarp.Value);
 
-      UpdateDAOProjectData(ProjectController.SelectedProjectIdx, data);
+      ProjectData.DAO.Update(ProjectController.SelectedProjectIdx, data);
 
       SaveAllProject();
     }
@@ -1602,13 +1203,13 @@ namespace WeavingGenerator
         ProjectData obj = prjList[i];
         int idx = obj.Idx;
 
-        UpdateDAOProjectData(idx, obj);
+        ProjectData.DAO.Update(idx, obj);
       }
     }
     public void RemoveProject(int idx)
     {
-      ProjectController.RemoveProjectData(idx);
-      RemoveDAOWeavingData(idx);     
+      ProjectController.Delete(idx);
+      ProjectData.DAO.Delete(idx);
       RemoveProjectButton(idx);
 
       if (idx == ProjectController.SelectedProjectIdx)
@@ -1758,15 +1359,6 @@ namespace WeavingGenerator
       ExitApp();
     }
 
-    ///////////////////////////////////////////////////////////////////////
-    // 시작 - 메인 메뉴 
-    ///////////////////////////////////////////////////////////////////////
-
-    ///////////////////////////////////////////////////////////////////////
-    // File 메인 메뉴 
-    ///////////////////////////////////////////////////////////////////////
-
-
 
 
 
@@ -1815,16 +1407,6 @@ namespace WeavingGenerator
         });
       }
     }
-
-    ///////////////////////////////////////////////////////////////////////
-    // Pattern
-    ///////////////////////////////////////////////////////////////////////
-
-
-    ///////////////////////////////////////////////////////////////////////
-    // 끝 - 메인 메뉴 
-    ///////////////////////////////////////////////////////////////////////
-
     ///////////////////////////////////////////////////////////////////////
     // 시작 - 직물 정보 설정 
     ///////////////////////////////////////////////////////////////////////
@@ -1832,7 +1414,7 @@ namespace WeavingGenerator
     public void SetJsonData(string jsonData)
     {
       //ProjectData data = MainForm.ParseProjectData(jsonData);
-      ProjectData data = ProjectDataParser.Parse(jsonData);
+      ProjectData data = ProjectData.JsonParser.Parse(jsonData);
       SetProjectData(ProjectController.SelectedProjectIdx, data);
     }
 
@@ -2220,7 +1802,7 @@ namespace WeavingGenerator
     {
       // 임시
       DialogJsonData dialog = new DialogJsonData(this);
-      
+
       string json = ProjectController.GetProjectData().SerializeJson();
       dialog.SetJsonData(json);
       dialog.ShowDialog();
@@ -2359,7 +1941,7 @@ namespace WeavingGenerator
       SetSelectedProjectButton(newIdx);
       //SetProjectData(tempRunIdx, tempRunWData);
     }
-    
+
     // menu.open
     private void barButtonItem_OpenProject_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
     {
@@ -2370,7 +1952,7 @@ namespace WeavingGenerator
       dialog.ShowDialog();
     }
     private void EventOpenProject(object sender, int openIdx)
-    {      
+    {
       OpenProject(openIdx);
     }
 
@@ -2501,7 +2083,7 @@ namespace WeavingGenerator
       ResizeImageFile(diffFilePath, printFilePath);
 
 
-      List<Yarn> yarnList = ListDAOYarn();
+      List<Yarn> yarnList = Yarn.DAO.SelectAll();
 
       //BasicInfo binfo = weaveData.BasicInfo;
       Pattern pattern = weaveData.Pattern;
@@ -2977,7 +2559,7 @@ namespace WeavingGenerator
       weave2DViewer.SetProjectData(idx, data);
       ThreadViewerRepaint();
     }
-    
+
     //---------------------------------------------------------------------
 
     ///////////////////////////////////////////////////////////////////////
@@ -3279,17 +2861,12 @@ namespace WeavingGenerator
       return destImage;
     }
 
-
     public Point GetChildFormLocation()
     {
       Point p = new Point(this.Location.X + 100, this.Location.Y + 100);
       return p;
     }
   }
-
-
-
-
 
   public static class ControlExtensions
   {

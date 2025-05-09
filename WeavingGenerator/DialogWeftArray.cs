@@ -19,6 +19,7 @@ using CefSharp.DevTools.CSS;
 using DevExpress.XtraDiagram.Base;
 using DevExpress.Utils;
 using DevExpress.XtraGrid.Drawing;
+using WeavingGenerator.ProjectDatas;
 
 namespace WeavingGenerator
 {

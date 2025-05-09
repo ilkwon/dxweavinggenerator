@@ -7,17 +7,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.Entity.Infrastructure.DependencyResolution;
-using System.Data.SQLite;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Xml.Linq;
 
-using WeavingGenerator.Services;
+using System.Diagnostics;
+using System.Windows.Forms;
+using WeavingGenerator.ProjectDatas;
+
 using static DevExpress.XtraEditors.Mask.MaskSettings;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
@@ -242,7 +236,7 @@ namespace WeavingGenerator
     }
     private void EventNewProjectData(object sender, int newIdx)
     {
-      ProjectData wData = ProjectDataRepository.GetDAOProjectData(newIdx);
+      ProjectData wData = ProjectData.DAO.SelectById(newIdx);
       if (wData == null)
       {
         return;

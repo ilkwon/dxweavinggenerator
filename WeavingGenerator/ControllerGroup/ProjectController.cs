@@ -6,9 +6,9 @@ using System.Text;
 using DevExpress.XtraEditors;
 using Jm.DBConn;
 using Newtonsoft.Json;
-//using WeavingGenerator.Models;
-using WeavingGenerator.Services;
-using WeavingGenerator.Views;
+
+using WeavingGenerator.ProjectDatas;
+
 
 namespace WeavingGenerator
 {
@@ -27,7 +27,7 @@ namespace WeavingGenerator
     private List<ProjectData> prjList = new();
     public ProjectController()
     {
-      prjList = ProjectDataRepository.ListDAOProjectData();
+      prjList = ProjectData.DAO.SelectAll();
     }
     public List<ProjectData> ProjectDataList => prjList;
     public ProjectData GetProjectData() => GetProjectData(_selectedProjectIdx);
@@ -42,7 +42,8 @@ namespace WeavingGenerator
       return null;
     }
 
-    public void RemoveProjectData(int idx)
+    //-----------------------------------------------------------------------
+    public void Delete(int idx)
     {
       for (int i = 0; i < prjList.Count; i++)
       {
@@ -55,52 +56,6 @@ namespace WeavingGenerator
       }
     }
 
-    //-----------------------------------------------------------------------
-    public ProjectData GetDAOProjectData(int idx)
-    {
-      var paramMap = new Dictionary<string, object> { { "@idx", idx } };
-      var dataResult = DBConn.Instance.select("select_tb_project_by_idx", paramMap);
-      if (dataResult?.Count > 0)
-      {
-        string json = dataResult.Data[0]["PROJECT_DATA"].ToString();
-        var data = ProjectDataParser.Parse(json);
-        data.Idx = idx;
-        return data;
-      }
-      return null;
-    }
-    //-----------------------------------------------------------------------
-    public int SaveDAOProjectData(string name, string projectJson)
-    {
-      int idx = -1;
-      var paramMap = new Dictionary<string, object>
-      {
-        { "@name", name },
-        { "@reg_dt", DateTime.Now.ToString("yyyyMMddHHmmss") },
-        { "@project_data", projectJson }
-      };
-
-      DBConn.Instance.insert("insert_tb_project", paramMap);
-      var result = DBConn.Instance.select("select_last_insert_rowid", new());
-      if (result?.Count > 0)
-        idx = Convert.ToInt32(result.Data[0]["IDX"]);
-      return idx;
-    }
-    //-------------------------------------------------------------------
-    public void RemoveDAOWeavingData(int idx)
-    {
-      try
-      {
-        Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("@idx", idx);
-        DBConn.Instance.delete("delete_tb_project_by_idx", paramMap);
-      }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
-      }
-    }
 
     //-----------------------------------------------------------------------   
     public string CreateDefaultProjectDataFromJsonFile(string name)
@@ -119,7 +74,7 @@ namespace WeavingGenerator
     public ProjectData CreateDefaultProjectData(string name)
     {
       string str = CreateDefaultProjectDataFromJsonFile(name);
-      return ProjectDataParser.Parse(str);
+      return ProjectData.JsonParser.Parse(str);
     }
     public List<Yarn> ListDAOYarn()
     {
@@ -282,26 +237,7 @@ namespace WeavingGenerator
     }
 
     //-------------------------------------------------------------------
-    public void UpdateDAOProjectData(int idx, ProjectData data)
-    {
-      string name = data.Name;
-      string reg_dt = data.Reg_dt;
-      string jsonData = data.SerializeJson();
-
-      try
-      {
-        Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("@name", name);
-        paramMap.Add("@project_data", jsonData);
-        paramMap.Add("@idx", idx);
-
-        DBConn.Instance.update("update_tb_project_by_idx", paramMap);
-      }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
-      }
-    }
+ 
+    
   }
 }

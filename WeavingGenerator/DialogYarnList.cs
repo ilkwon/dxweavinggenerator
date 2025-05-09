@@ -19,6 +19,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Media.TextFormatting;
+using WeavingGenerator.ProjectDatas;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WeavingGenerator

@@ -6,9 +6,9 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 
-namespace WeavingGenerator
+namespace WeavingGenerator.ProjectDatas
 {
-  public class ProjectData
+  public partial class ProjectData
   {
     // idx
     private int idx;
@@ -35,7 +35,7 @@ namespace WeavingGenerator
     private PhysicalProperty _physicalProperty;
     //2025-02-05 soonchol
     private bool _yarnDyed;
-    private String _dyeColor;
+    private string _dyeColor;
 
     public int Idx
     {
@@ -112,18 +112,18 @@ namespace WeavingGenerator
       set => _yarnDyed = value?.ToUpper() == "Y";
     }
 
-    public String DyeColor
+    public string DyeColor
     {
       get { return _dyeColor; }
       set { _dyeColor = value; }
     }
 
-    public static Color GetDyeColor(String dyeColor)
+    public static Color GetDyeColor(string dyeColor)
     {
       //"#255,128,128,128"
-      String src = dyeColor.Replace("#", "");
+      string src = dyeColor.Replace("#", "");
       //"255,128,128,128"
-      String[] argb = src.Split(',');
+      string[] argb = src.Split(',');
 
       if (argb.Length != 4)
       {
@@ -140,12 +140,12 @@ namespace WeavingGenerator
       return Color.FromArgb(a, r, g, b);
     }
 
-    public static String GetDyeColor(Color dyeColor)
+    public static string GetDyeColor(Color dyeColor)
     {
       return $"#{dyeColor.A},{dyeColor.R},{dyeColor.G},{dyeColor.B}";
     }
 
-    public static String GetHexDyeColor(Color dyeColor)
+    public static string GetHexDyeColor(Color dyeColor)
     {
       return $"{dyeColor.R.ToString("X2")}{dyeColor.G.ToString("X2")}{dyeColor.B.ToString("X2")}";
     }
@@ -158,28 +158,28 @@ namespace WeavingGenerator
         NullValueHandling = NullValueHandling.Ignore
       };
 
-      var pattern = this.Pattern;
+      var pattern = Pattern;
 
       var wrapper = new
       {
-        Name = this.Name,
-        ProjectID = this.ProjectID,
-        OptionMetal = this.OptionMetal,
-        Memo = Util.Base64Encode(this.Memo),
-        YarnDyed = this.YarnDyed ? "Y" : "N",
-        DyeColor = this.DyeColor,
-        Reg_dt = this.Reg_dt,
+        Name,
+        ProjectID,
+        OptionMetal,
+        Memo = Util.Base64Encode(Memo),
+        YarnDyed = YarnDyed ? "Y" : "N",
+        DyeColor,
+        Reg_dt,
         Pattern = pattern != null ? new
         {
-          Idx = pattern.Idx,
-          Name = pattern.Name,
-          XLength = pattern.XLength,
-          YLength = pattern.YLength,
+          pattern.Idx,
+          pattern.Name,
+          pattern.XLength,
+          pattern.YLength,
           Data = ConvertPatternData(pattern.Data)
         } : null,
-        Warp = this.Warp,
-        Weft = this.Weft,
-        PhysicalProperty = this.PhysicalProperty
+        Warp,
+        Weft,
+        PhysicalProperty
       };
 
       return JsonConvert.SerializeObject(wrapper, settings);
@@ -470,11 +470,11 @@ namespace WeavingGenerator
 
     public void AddWArray(WArray array)
     {
-      this.wArrayList.Add(array);
+      wArrayList.Add(array);
     }
     public void SetWArrayList(List<WArray> list)
     {
-      this.wArrayList = list;
+      wArrayList = list;
     }
     public List<WArray> GetWArrayList()
     {
@@ -567,7 +567,7 @@ namespace WeavingGenerator
       //Trace.Write("\r\n");
       //Trace.WriteLine("sPos : " + sPos + ", ePos : " + ePos);
 
-      idxList.RemoveRange(sPos, (ePos - sPos) + 1);
+      idxList.RemoveRange(sPos, ePos - sPos + 1);
       //Trace.WriteLine("remove idxList.Count : " + idxList.Count);
       for (int i = 0; i < n; i++)
       {
@@ -581,7 +581,7 @@ namespace WeavingGenerator
     }
     public void SetWRepeatList(List<WRepeat> list)
     {
-      this.wRepeatList = list;
+      wRepeatList = list;
     }
     public List<WRepeat> GetWRepeatList()
     {
@@ -668,11 +668,11 @@ namespace WeavingGenerator
 
     public void AddWArray(WArray array)
     {
-      this.wArrayList.Add(array);
+      wArrayList.Add(array);
     }
     public void SetWArrayList(List<WArray> list)
     {
-      this.wArrayList = list;
+      wArrayList = list;
     }
     public List<WArray> GetWArrayList()
     {
@@ -742,7 +742,7 @@ namespace WeavingGenerator
 
     public void AddWRepeat(WRepeat r)
     {
-      this.wRepeatList.Add(r);
+      wRepeatList.Add(r);
     }
     private void SetWRepeatList(List<int> idxList, int s, int e, int n)
     {
@@ -775,7 +775,7 @@ namespace WeavingGenerator
       //Trace.Write("\r\n");
       //Trace.WriteLine("sPos : " + sPos + ", ePos : " + ePos);
 
-      idxList.RemoveRange(sPos, (ePos - sPos) + 1);
+      idxList.RemoveRange(sPos, ePos - sPos + 1);
       //Trace.WriteLine("remove idxList.Count : " + idxList.Count);
       for (int i = 0; i < n; i++)
       {
@@ -789,7 +789,7 @@ namespace WeavingGenerator
     }
     public void SetWRepeatList(List<WRepeat> list)
     {
-      this.wRepeatList = list;
+      wRepeatList = list;
     }
     public List<WRepeat> GetWRepeatList()
     {
@@ -881,67 +881,6 @@ namespace WeavingGenerator
       get { return bucklingStiffnessWarp; }
       set { bucklingStiffnessWarp = value; }
     }
-  }
-
-  public class Yarn
-  {
-    private int idx = 0;
-    private string name;
-    private string weight = "";
-    private string unit = "";
-    private string type = "";
-    private string textured = "";
-    private string image = "";
-    private string metal = "";
-    private string reg_dt = "";
-
-    public int Idx
-    {
-      get { return idx; }
-      set { idx = value; }
-    }
-
-    public string Name
-    {
-      get { return name; }
-      set { name = value; }
-    }
-    public string Weight
-    {
-      get { return weight; }
-      set { weight = value; }
-    }
-    public string Unit
-    {
-      get { return unit; }
-      set { unit = value; }
-    }
-    public string Type
-    {
-      get { return type; }
-      set { type = value; }
-    }
-    public string Textured
-    {
-      get { return textured; }
-      set { textured = value; }
-    }
-    public string Metal
-    {
-      get { return metal; }
-      set { metal = value; }
-    }
-    public string Image
-    {
-      get { return image; }
-      set { image = value; }
-    }
-    public string Reg_dt
-    {
-      get { return reg_dt; }
-      set { reg_dt = value; }
-    }
-
   }
 
   public static class YarnDyedHelper
