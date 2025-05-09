@@ -73,7 +73,7 @@ namespace WeavingGenerator
             colorEdit_Change.ReadOnly = true;
 
             //2025-02-05 soonchol
-            if (wData.YardDyed == false)
+            if (wData.YarnDyed == false)
             {
                 colorEdit_Change.Visible = false;
                 simpleButton_Color.Visible = false;
@@ -117,7 +117,7 @@ namespace WeavingGenerator
             tb.Columns.Add(COLUMN_YARN);
 
             //2025-02-05 soonchol
-            if (wData.YardDyed == true)
+            if (wData.YarnDyed == true)
             {
                 tb.Columns.Add(COLUMN_COLOR, typeof(Color));
             }
@@ -149,7 +149,7 @@ namespace WeavingGenerator
             repositoryItemColorEdit.Click += colorChangedClick;
 
             //2025-02-05 soonchol
-            if (wData.YardDyed == true)
+            if (wData.YarnDyed == true)
             {
                 gridView1.Columns[COLUMN_COLOR].ColumnEdit = repositoryItemColorEdit;
             }
@@ -263,7 +263,7 @@ namespace WeavingGenerator
                 //tb.Rows.Add((idx + 1), name, yarnName, color);
 
                 //2025-02-05 soonchol
-                if (wData.YardDyed == false)
+                if (wData.YarnDyed == false)
                 {
                     tb.Rows.Add(false, (idx + 1), yarnName);
                 }

@@ -98,10 +98,18 @@ namespace WeavingGenerator
     }
 
     //2025-02-05 soonchol
-    public bool YardDyed
+    [JsonIgnore]
+    public bool YarnDyed
     {
       get { return _yarnDyed; }
       set { _yarnDyed = value; }
+    }
+
+    [JsonProperty("YarnDyed")]
+    private string YarnDyedRaw
+    {
+      get => _yarnDyed ? "Y" : "N";
+      set => _yarnDyed = value?.ToUpper() == "Y";
     }
 
     public String DyeColor
@@ -158,7 +166,7 @@ namespace WeavingGenerator
         ProjectID = this.ProjectID,
         OptionMetal = this.OptionMetal,
         Memo = Util.Base64Encode(this.Memo),
-        YarnDyed = this.YardDyed ? "Y" : "N",
+        YarnDyed = this.YarnDyed ? "Y" : "N",
         DyeColor = this.DyeColor,
         Reg_dt = this.Reg_dt,
         Pattern = pattern != null ? new
@@ -934,5 +942,11 @@ namespace WeavingGenerator
       set { reg_dt = value; }
     }
 
+  }
+
+  public static class YarnDyedHelper
+  {
+    public static string ToYN(bool value) => value ? "Y" : "N";
+    public static bool FromYN(string value) => value?.ToUpper() == "Y";
   }
 }

@@ -29,8 +29,8 @@ namespace WeavingGenerator.Services
       proj.OptionMetal = root["OptionMetal"]?.ToString() ?? "0";
       proj.Memo = ParseMemo(root["Memo"]?.ToString());
 
-      proj.YardDyed = ParseYarnDyed(root);
-      proj.DyeColor = ParseDyeColor(root, proj.YardDyed);
+      proj.YarnDyed = ParseYarnDyed(root);
+      proj.DyeColor = ParseDyeColor(root, proj.YarnDyed);
 
       // 
       proj.Pattern           = ParsePattern(root["Pattern"] as JObject);

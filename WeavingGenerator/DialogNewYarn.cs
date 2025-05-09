@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
+
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WeavingGenerator
@@ -23,12 +24,13 @@ namespace WeavingGenerator
     {
         public DialogNewYarnEventHandler dialogNewYarnEventHandler = null;
 
-        MainForm mainForm;
+        ProjectController _projectController => Controllers.Instance.ProjectController;
+        //MainForm mainForm;
 
-        public DialogNewYarn(MainForm main)
+        public DialogNewYarn()
         {
             InitializeComponent();
-            mainForm = main;
+            
         }
 
 
@@ -238,7 +240,7 @@ namespace WeavingGenerator
             yarn.Image = image;
             yarn.Metal = metal;
 
-            int idx = mainForm.SaveDAOYarn(yarn);
+            int idx = _projectController.SaveDAOYarn(yarn);
             if (idx < 0)
             {
                 XtraMessageBox.Show("오류가 발생했습니다.");
@@ -334,7 +336,7 @@ namespace WeavingGenerator
             yarn.Image = image;
             yarn.Metal = metal;
 
-            int idx = mainForm.SaveDAOYarn(yarn);
+            int idx = _projectController.SaveDAOYarn(yarn);
             if (idx < 0)
             {
                 XtraMessageBox.Show("오류가 발생했습니다.");

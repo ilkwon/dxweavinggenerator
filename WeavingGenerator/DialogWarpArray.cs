@@ -321,7 +321,7 @@ namespace WeavingGenerator
                 else if (columnName == "Color")
                 {
                     //2025-02-05 soonchol
-                    if (data.YardDyed == true)
+                    if (data.YarnDyed == true)
                     {
                         column.Width = CELL_WIDTH_COLOR;
                     }

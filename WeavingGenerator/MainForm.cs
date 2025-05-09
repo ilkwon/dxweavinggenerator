@@ -30,7 +30,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using WeavingGenerator.Services;
-using WeavingGenerator.Controllers;
 using WeavingGenerator.Views;
 
 //using WeavingGenerator.ViewModels;
@@ -40,8 +39,6 @@ namespace WeavingGenerator
   {
     public BasicView Basic { get; private set; }
     
-    public ProjectController _projectController;
-
     public static String Default_DyeColor = "#255,255,255,255";
     //private MainViewModel viewModel;
     ///////////////////////////////////////////////////////////////////////
@@ -64,7 +61,6 @@ namespace WeavingGenerator
     ///////////////////////////////////////////////////////////////////////
     /// 직물 정보 목록
     ///////////////////////////////////////////////////////////////////////
-    //List<ProjectData> prjList = new List<ProjectData>();
 
 
     ///////////////////////////////////////////////////////////////////////
@@ -98,7 +94,7 @@ namespace WeavingGenerator
       }
     }
     
-    public ProjectController ProjectController => _projectController;
+    public ProjectController ProjectController => Controllers.Instance.ProjectController;
 
     public MainForm()
     {
@@ -167,13 +163,6 @@ namespace WeavingGenerator
       /// Pattern List 로딩 (기본/변형 조직 30종)
       ///////////////////////////////////////////////////////////////////
       InitPatternList();
-
-
-      ///////////////////////////////////////////////////////////////////
-      /// 프로젝트 목록 조회
-      ///////////////////////////////////////////////////////////////////
-      _projectController = new ProjectController();
-      //prjList = ListDAOProjectData();
 
       ///////////////////////////////////////////////////////////////////
       /// WeavingData List 로딩 후 프로젝트 리그트업
@@ -1929,7 +1918,7 @@ namespace WeavingGenerator
 
       //2025-02-05 soonchol
       colorEdit_DyeColor.Color = ProjectData.GetDyeColor(data.DyeColor);
-      checkEdit_YarnDyed.Checked = data.YardDyed;
+      checkEdit_YarnDyed.Checked = data.YarnDyed;
       //checkYarnDyedCheckedChanged(checkEdit_YarnDyed, null);
 
 
@@ -2334,9 +2323,9 @@ namespace WeavingGenerator
       //2025-02-05 soonchol
       if (wData != null)
       {
-        wData.YardDyed = chk.Checked;
+        wData.YarnDyed = chk.Checked;
 
-        if (wData.YardDyed == true)
+        if (wData.YarnDyed == true)
         {
           weave2DViewer.SetYarnDyeColor(null);
         }
@@ -2397,7 +2386,7 @@ namespace WeavingGenerator
 
     private void barButtonItem_NewYarn_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
     {
-      DialogNewYarn dialog = new DialogNewYarn(this);
+      DialogNewYarn dialog = new DialogNewYarn();
       dialog.StartPosition = FormStartPosition.Manual;
       dialog.Location = GetChildFormLocation();
       dialog.ShowDialog();
@@ -2429,7 +2418,7 @@ namespace WeavingGenerator
 
     private void barButtonItem_Density_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
     {
-      DialogDensity dialog = new DialogDensity(this);
+      DialogDensity dialog = new DialogDensity();
       dialog.StartPosition = FormStartPosition.Manual;
       dialog.Location = GetChildFormLocation();
       dialog.dialogUpdateDensityEventHandler += new DialogUpdateDensityEventHandler(EventUpdateDensity);

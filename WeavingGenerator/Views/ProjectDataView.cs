@@ -16,7 +16,7 @@ namespace WeavingGenerator.Views
     {
       _basic.Name.Text = data.Name;
       _basic.RegDate.Text = data.Reg_dt;
-      _basic.YarnDyed.Checked = data.YardDyed;
+      _basic.YarnDyed.Checked = data.YarnDyed;
       _basic.DyeColor.Color = Util.ToColor(data.DyeColor);
       // _basic.Scale.SelectedIndex = 0; // 설정이 있다면 여기에 추가
     }

@@ -70,7 +70,7 @@ namespace WeavingGenerator
             ///////////////////////////////////////////////////////////////////
             // 데이터 설정
             ///////////////////////////////////////////////////////////////////
-            yarnTempList = ToYarnTempList(mainForm.ListDAOYarn());
+            yarnTempList = ToYarnTempList(Controllers.Instance.ProjectController.ListDAOYarn());
 
 
             ///////////////////////////////////////////////////////////////////
@@ -385,14 +385,14 @@ namespace WeavingGenerator
 
         private void btn_Add_Click(object sender, EventArgs e)
         {
-            DialogNewYarn dialog = new DialogNewYarn(mainForm);
+            DialogNewYarn dialog = new DialogNewYarn();
             dialog.dialogNewYarnEventHandler += new DialogNewYarnEventHandler(EventNewYarn);
             dialog.ShowDialog();
         }
 
         private void EventNewYarn(object sender, int newIdx)
         {
-            yarnTempList = ToYarnTempList(mainForm.ListDAOYarn());
+            yarnTempList = ToYarnTempList(Controllers.Instance.ProjectController.ListDAOYarn());
             initListView();
         }
 
@@ -462,7 +462,7 @@ namespace WeavingGenerator
             }
 
             // 업데이트
-            List<Yarn> dbList = mainForm.ListDAOYarn();
+            List<Yarn> dbList = Controllers.Instance.ProjectController.ListDAOYarn();
             if (dbList != null)
             {
                 for (int i = 0; i < dbList.Count; i++)
@@ -482,14 +482,14 @@ namespace WeavingGenerator
                     }
                     if (IsDel == true)
                     {
-                        mainForm.RemoveDAOYarn(dbIdx);
+                        Controllers.Instance.ProjectController.RemoveDAOYarn(dbIdx);
                     }
                 }
             }
             for (int i = 0; i < yarnList.Count; i++)
             {
                 Yarn y = yarnList[i];
-                mainForm.UpdateDAOYarn(y);
+                Controllers.Instance.ProjectController.UpdateDAOYarn(y);
             }
             ///////////////////////////////////////////////////////////////////
             /// 끝 - 데이터 수정
