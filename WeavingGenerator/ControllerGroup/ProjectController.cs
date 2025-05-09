@@ -24,38 +24,24 @@ namespace WeavingGenerator
       set => _selectedProjectIdx = value;
     }
     //-----------------------------------------------------------------------
-    private List<ProjectData> prjList = new();
+    private List<ProjectData> projects = new();
     public ProjectController()
     {
-      prjList = ProjectData.DAO.SelectAll();
+      projects = ProjectData.DAO.SelectAll();
     }
-    public List<ProjectData> ProjectDataList => prjList;
+    public List<ProjectData> ProjectDataList => projects;
     public ProjectData GetProjectData() => GetProjectData(_selectedProjectIdx);
+    //-----------------------------------------------------------------------   
     public ProjectData GetProjectData(int idx)
     {
-      for (int i = 0; i < prjList.Count; i++)
+      for (int i = 0; i < projects.Count; i++)
       {
-        ProjectData data = prjList[i];
+        ProjectData data = projects[i];
         if (data.Idx == idx)
           return data;
       }
       return null;
     }
-
-    //-----------------------------------------------------------------------
-    public void Delete(int idx)
-    {
-      for (int i = 0; i < prjList.Count; i++)
-      {
-        var data = prjList[i];
-        if (data.Idx == idx)
-        {
-          prjList.RemoveAt(i);
-          break;
-        }
-      }
-    }
-
 
     //-----------------------------------------------------------------------   
     public string CreateDefaultProjectDataFromJsonFile(string name)
@@ -76,168 +62,20 @@ namespace WeavingGenerator
       string str = CreateDefaultProjectDataFromJsonFile(name);
       return ProjectData.JsonParser.Parse(str);
     }
-    public List<Yarn> ListDAOYarn()
+    //-----------------------------------------------------------------------
+    public void Remove(int idx)
     {
-      List<Yarn> list = new List<Yarn>();
-
-      try
+      for (int i = 0; i < projects.Count; i++)
       {
-        Dictionary<string, object> paramMap = new Dictionary<string, object>(); // 파라미터 없음
-        DataResult dataResult = DBConn.Instance.select("select_yarn_list", paramMap);
-
-        if (dataResult != null && dataResult.Count > 0)
+        var data = projects[i];
+        if (data.Idx == idx)
         {
-          foreach (var row in dataResult.Data)
-          {
-            Yarn yarn = new Yarn();
-            yarn.Idx = Convert.ToInt32(row["IDX"]);
-            yarn.Name = Util.StripSlashes(row["NAME"].ToString());
-            yarn.Weight = row["WEIGHT"].ToString();
-            yarn.Unit = row["UNIT"].ToString();
-            yarn.Type = row["TYPE"].ToString();
-            yarn.Textured = row["TEXTURED"].ToString();
-            yarn.Metal = row["METAL"].ToString();
-            yarn.Image = row["IMAGE"].ToString();
-            yarn.Reg_dt = row["REG_DT"].ToString();
-            list.Add(yarn);
-          }
+          projects.RemoveAt(i);
+          break;
         }
       }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
-      }
-
-      return list;
     }
-    //-----------------------------------------------------------
-    public bool UpdateDAOYarn(Yarn yarn)
-    {
-      DateTime dt = DateTime.Now;
-      try
-      {
-        int idx = yarn.Idx;
-        string name = yarn.Name;
-        string weight = yarn.Weight;
-        string unit = yarn.Unit;
-        string type = yarn.Type;
-        string textured = yarn.Textured;
-        string metal = yarn.Metal;
-        string image = yarn.Image;
-        string reg_dt = yarn.Reg_dt;
+    //-----------------------------------------------------------------------
 
-        if (string.IsNullOrEmpty(weight)) weight = "50";
-        if (string.IsNullOrEmpty(unit)) unit = "Denier";
-        if (string.IsNullOrEmpty(type)) type = "장섬유";
-        if (string.IsNullOrEmpty(textured)) textured = "Filament";
-
-        name = Util.AddSlashes(name);
-
-        Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("@name", name);
-        paramMap.Add("@weight", weight);
-        paramMap.Add("@unit", unit);
-        paramMap.Add("@type", type);
-        paramMap.Add("@textured", textured);
-        paramMap.Add("@metal", metal);
-        paramMap.Add("@image", image);
-        paramMap.Add("@idx", idx);
-
-        int nCount = DBConn.Instance.update("update_tb_yarn_by_idx", paramMap);
-        if (nCount == 0)
-        {
-          // 갱신 안됨...
-        }
-      }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
-        return false;
-      }
-
-      return true;
-    }
-    //-----------------------------------------------------------
-    public void RemoveDAOYarn(int idx)
-    {
-      try
-      {
-        Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("@idx", idx);
-
-        int affectedRows = DBConn.Instance.update("soft_delete_tb_yarn_by_idx", paramMap);
-        if (affectedRows == 0)
-        {
-          // 삭체된게 없음.
-        }
-      }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
-      }
-
-    }
-    //-------------------------------------------------------------------
-    public int SaveDAOYarn(Yarn yarn)
-    {
-      int idx = -1;
-      DateTime dt = DateTime.Now;
-      try
-      {
-        string name = yarn.Name;
-        string weight = yarn.Weight;
-        string unit = yarn.Unit;
-        string type = yarn.Type;
-        string textured = yarn.Textured;
-        string image = yarn.Image;
-        string metal = yarn.Metal;
-        string reg_dt = dt.ToString("yyyyMMddhhmmss");
-
-        if (string.IsNullOrEmpty(weight)) weight = "50";
-        if (string.IsNullOrEmpty(unit)) unit = "Denier";
-        if (string.IsNullOrEmpty(type)) type = "장섬유";
-        if (string.IsNullOrEmpty(textured)) textured = "Filament";
-
-        name = Util.AddSlashes(name);
-
-        Dictionary<string, object> paramMap = new Dictionary<string, object>();
-        paramMap.Add("@name", name);
-        paramMap.Add("@weight", weight);
-        paramMap.Add("@unit", unit);
-        paramMap.Add("@type", type);
-        paramMap.Add("@textured", textured);
-        paramMap.Add("@metal", metal);
-        paramMap.Add("@image", image);
-        paramMap.Add("@reg_dt", reg_dt);
-
-        int nRow = DBConn.Instance.insert("insert_tb_yarn", paramMap);
-        if (nRow == 0)
-        {
-          // 갱신 안됨...
-        }
-        // 마지막 Insert ID 가져오기
-        Dictionary<string, object> emptyParam = new Dictionary<string, object>();
-        DataResult dataResult = DBConn.Instance.select("select_last_insert_rowid", emptyParam);
-
-        if (dataResult != null && dataResult.Count > 0)
-        {
-          idx = Convert.ToInt32(dataResult.Data[0]["IDX"]);
-        }
-      }
-      catch (Exception ex)
-      {
-        Trace.Write(ex.ToString());
-        XtraMessageBox.Show("Error", "Msg Box Title");
-      }
-
-      return idx;
-    }
-
-    //-------------------------------------------------------------------
- 
-    
   }
 }

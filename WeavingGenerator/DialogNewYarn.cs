@@ -240,7 +240,7 @@ namespace WeavingGenerator
             yarn.Image = image;
             yarn.Metal = metal;
 
-            int idx = _projectController.SaveDAOYarn(yarn);
+            int idx = Yarn.DAO.Insert(yarn);
             if (idx < 0)
             {
                 XtraMessageBox.Show("오류가 발생했습니다.");
@@ -336,7 +336,7 @@ namespace WeavingGenerator
             yarn.Image = image;
             yarn.Metal = metal;
 
-            int idx = _projectController.SaveDAOYarn(yarn);
+            int idx = Yarn.DAO.Insert(yarn);
             if (idx < 0)
             {
                 XtraMessageBox.Show("오류가 발생했습니다.");

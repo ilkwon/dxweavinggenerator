@@ -1006,6 +1006,7 @@ namespace WeavingGenerator
       }
       return "0";
     }
+    //---------------------------------------------------------------------
     public string GetObjectFrom3DViewer()
     {
       var task = weave3DViewer.EvaluateScriptAsync("GetObjectValue();");
@@ -1206,9 +1207,11 @@ namespace WeavingGenerator
         ProjectData.DAO.Update(idx, obj);
       }
     }
+
+    //---------------------------------------------------------------------
     public void RemoveProject(int idx)
     {
-      ProjectController.Delete(idx);
+      ProjectController.Remove(idx);
       ProjectData.DAO.Delete(idx);
       RemoveProjectButton(idx);
 
@@ -1358,16 +1361,8 @@ namespace WeavingGenerator
     {
       ExitApp();
     }
-
-
-
-
+    //---------------------------------------------------------------------
     int nCall = 0;
-    //private System.Windows.Forms.Timer timer;
-    //private int timerCount = 0;
-    ///////////////////////////////////////////////////////////////////////
-    // 3D Viewer Reload Thread
-    ///////////////////////////////////////////////////////////////////////
     private Task taskGenerateImage;
     private CancellationTokenSource ctsGenerateImage;
 
@@ -1387,7 +1382,7 @@ namespace WeavingGenerator
 
       //Trace.WriteLine("thread_generate START............ ");
     }
-
+    //---------------------------------------------------------------------
     private async Task RunGenerateImageAsync(CancellationToken token)
     {
       if (token.IsCancellationRequested) return;
@@ -1563,19 +1558,7 @@ namespace WeavingGenerator
       }
       return null;
     }
-    private int GetPatternIndx(int idx)
-    {
-      int z = -1;
-      for (int i = 0; i < patternList.Count; i++)
-      {
-        Pattern pattern = patternList[i];
-        if (pattern.Idx == idx)
-        {
-          z = i;
-        }
-      }
-      return z;
-    }
+
     public void SetPattern(int idx)
     {
       Pattern pattern = GetPattern(idx);

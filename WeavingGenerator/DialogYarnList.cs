@@ -71,7 +71,7 @@ namespace WeavingGenerator
             ///////////////////////////////////////////////////////////////////
             // 데이터 설정
             ///////////////////////////////////////////////////////////////////
-            yarnTempList = ToYarnTempList(Controllers.Instance.ProjectController.ListDAOYarn());
+            yarnTempList = ToYarnTempList(Yarn.DAO.SelectAll());
 
 
             ///////////////////////////////////////////////////////////////////
@@ -393,7 +393,7 @@ namespace WeavingGenerator
 
         private void EventNewYarn(object sender, int newIdx)
         {
-            yarnTempList = ToYarnTempList(Controllers.Instance.ProjectController.ListDAOYarn());
+            yarnTempList = ToYarnTempList(Yarn.DAO.SelectAll());
             initListView();
         }
 
@@ -463,7 +463,7 @@ namespace WeavingGenerator
             }
 
             // 업데이트
-            List<Yarn> dbList = Controllers.Instance.ProjectController.ListDAOYarn();
+            List<Yarn> dbList = Yarn.DAO.SelectAll();
             if (dbList != null)
             {
                 for (int i = 0; i < dbList.Count; i++)
@@ -483,14 +483,14 @@ namespace WeavingGenerator
                     }
                     if (IsDel == true)
                     {
-                        Controllers.Instance.ProjectController.RemoveDAOYarn(dbIdx);
+                        Yarn.DAO.SoftDelete(dbIdx);
                     }
                 }
             }
             for (int i = 0; i < yarnList.Count; i++)
             {
                 Yarn y = yarnList[i];
-                Controllers.Instance.ProjectController.UpdateDAOYarn(y);
+                Yarn.DAO.Update(y);
             }
             ///////////////////////////////////////////////////////////////////
             /// 끝 - 데이터 수정

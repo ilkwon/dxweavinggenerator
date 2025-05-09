@@ -367,7 +367,7 @@ namespace WeavingGenerator
       {
         yarnList.Clear();
       }
-      yarnList = controllers.ProjectController.ListDAOYarn();
+      yarnList = Yarn.DAO.SelectAll();
 
 
 
