@@ -9,14 +9,18 @@ using System.Linq;
 using System.Reflection;
 using System.Resources;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace WeavingGenerator
 {
     internal class Util
     {
-
-        public static string ToDateHuman(string date)
+    public static bool isNumber(string strValue)
+    {
+      return Regex.IsMatch(strValue, @"[-+]?\d*\.?\d+");
+    }
+    public static string ToDateHuman(string date)
         {
             if (string.IsNullOrEmpty(date)) return "";
             DateTime dt = DateTime.ParseExact(date, "yyyyMMddHHmmss", null);

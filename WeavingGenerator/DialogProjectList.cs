@@ -22,7 +22,7 @@ namespace WeavingGenerator
   public partial class DialogProjectList : XtraForm
   {
     public DialogOpenProjectEventHandler dialogOpenProjectEventHandler = null;
-    private ProjectController projectController => Controllers.Instance.ProjectController;
+    private ProjectController projectController => Controllers.Instance.CurrentProjectController;
     MainForm mainForm;
     
     //int idx = -1;

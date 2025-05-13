@@ -24,7 +24,7 @@ namespace WeavingGenerator
     {
         public DialogNewYarnEventHandler dialogNewYarnEventHandler = null;
 
-        ProjectController _projectController => Controllers.Instance.ProjectController;
+        ProjectController _projectController => Controllers.Instance.CurrentProjectController;
         //MainForm mainForm;
 
         public DialogNewYarn()
@@ -206,7 +206,7 @@ namespace WeavingGenerator
                 textEdit_Weight.Focus();
                 return;
             }
-            if (MainForm.isNumber(weight) == false)
+            if (Util.isNumber(weight) == false)
             {
                 XtraMessageBox.Show("숫자를 입력해주세요");
                 textEdit_Weight.Focus();
@@ -302,7 +302,7 @@ namespace WeavingGenerator
                 textEdit_Weight.Focus();
                 return;
             }
-            if (MainForm.isNumber(weight) == false)
+            if (Util.isNumber(weight) == false)
             {
                 XtraMessageBox.Show("숫자를 입력해주세요");
                 textEdit_Weight.Focus();

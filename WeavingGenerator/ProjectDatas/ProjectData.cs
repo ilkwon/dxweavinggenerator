@@ -36,7 +36,12 @@ namespace WeavingGenerator.ProjectDatas
     //2025-02-05 soonchol
     private bool _yarnDyed;
     private string _dyeColor;
-
+    private string scale = "1x";
+    public string Scale
+    {
+      get { return scale; }
+      set { scale = value; }
+    }
     public int Idx
     {
       get { return idx; }

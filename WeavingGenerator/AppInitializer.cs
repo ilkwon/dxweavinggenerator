@@ -4,11 +4,15 @@ using WeavingGenerator.ProjectDatas;
 using WeavingGenerator;
 using System.IO;
 using Jm.DBConn;
+using DevExpress.XtraMap;
 
 public static class AppInitializer
 {
   //---------------------------------------------------------------------
-  public static string Initialize()
+  /// <summary>
+  /// 어플리케이션 로컬디비 생성, App Id,
+  /// </summary>
+  public static void Initialize()
   {
     string appPath = Path.Combine(
       Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -33,6 +37,12 @@ public static class AppInitializer
       Yarn.DAO.CreateTable();
     }
 
-    return AppSetting.GetAppId();
+    SetupAppid();    
+  }
+
+  private static void SetupAppid()
+  {
+    var result = DBConn.Instance.select("select_tb_appid", new());
+    AppSetting.APPID = result?.Count > 0 ? result.Data[0]["APPID"].ToString() : "";
   }
 }

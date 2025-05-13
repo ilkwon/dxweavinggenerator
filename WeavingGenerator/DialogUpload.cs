@@ -14,7 +14,7 @@ namespace WeavingGenerator
   {
     MainForm mainForm;
 
-    private ProjectController projectController => Controllers.Instance.ProjectController;
+    private ProjectController projectController => Controllers.Instance.CurrentProjectController;
     ProjectData data;
     string viewerUrl;
     public DialogUpload(MainForm main)
@@ -38,7 +38,7 @@ namespace WeavingGenerator
       ///////////////////////////////////////////////////////////////////
       //
       ///////////////////////////////////////////////////////////////////
-      string appid = mainForm.GetAPPID();
+      string appid = AppSetting.GetAppId();
       string projectid = data.ProjectID;
 
       viewerUrl = MainForm.VIEWER_URL + "?APPID=" + appid + "&PROJECTID=" + projectid;
@@ -62,7 +62,7 @@ namespace WeavingGenerator
     //---------------------------------------------------------------------
     private void simpleButton_Ok_Click(object sender, EventArgs e)
     {
-      string appid = mainForm.GetAPPID();
+      string appid = AppSetting.GetAppId();
       string projectid = data.ProjectID;
 
       string diff = mainForm.GetDiffFilePath();

@@ -70,7 +70,7 @@ namespace WeavingGenerator
       tb.Columns.Add(COLUMN_NAME);
 
 
-      ProjectData wData = controllers.ProjectController.GetProjectData();
+      ProjectData wData = controllers.CurrentProjectController.GetProjectData();
       if (wData != null)
       {
         selectedIdx = wData.Pattern.Idx;
@@ -137,7 +137,7 @@ namespace WeavingGenerator
 
       //2025-01-24 soonchol
       //load user defined pattern
-      ProjectData wData = controllers.ProjectController.GetProjectData();
+      ProjectData wData = controllers.CurrentProjectController.GetProjectData();
 
       if (wData.Pattern.Idx == -1)
       {

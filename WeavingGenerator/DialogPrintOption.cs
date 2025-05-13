@@ -29,7 +29,7 @@ namespace WeavingGenerator
       ///////////////////////////////////////////////////////////////////
       //
       ///////////////////////////////////////////////////////////////////
-      data = controllers.ProjectController.GetProjectData();
+      data = controllers.CurrentProjectController.GetProjectData();
       if (data == null)
       {
         XtraMessageBox.Show("프로젝트 생성 후 이용해주세요..");
@@ -39,7 +39,7 @@ namespace WeavingGenerator
       ///////////////////////////////////////////////////////////////////
       //
       ///////////////////////////////////////////////////////////////////
-      string appid = mainForm.GetAPPID();
+      string appid = AppSetting.GetAppId();
       memoEdit_Memo.Text = data.Memo;
       memoEdit_Memo.SelectionLength = 0;
       simpleButton_Ok.DialogResult = DialogResult.OK;

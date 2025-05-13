@@ -4,14 +4,14 @@ namespace WeavingGenerator
 {
   public class Controllers
   {
-    private static readonly Lazy<Controllers> _instance = new(() => new Controllers());
-    public static Controllers Instance => _instance.Value;
+    private static readonly Lazy<Controllers> s_instance = new(() => new Controllers());
+    public static Controllers Instance => s_instance.Value;
 
-    public ProjectController ProjectController { get; private set; }
+    public ProjectController CurrentProjectController { get; private set; }
 
     private Controllers()
     {
-      ProjectController = new ProjectController();
+      CurrentProjectController = new ProjectController();
     }
   }
 }

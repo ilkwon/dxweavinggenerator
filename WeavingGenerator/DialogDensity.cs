@@ -23,7 +23,7 @@ namespace WeavingGenerator
     private Controllers controllers => Controllers.Instance;
     public DialogUpdateDensityEventHandler dialogUpdateDensityEventHandler = null;
     
-    private ProjectController _projectController => controllers.ProjectController;
+    private ProjectController _projectController => controllers.CurrentProjectController;
     public DialogDensity()
     {
       InitializeComponent();
