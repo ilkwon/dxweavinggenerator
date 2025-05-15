@@ -26,37 +26,25 @@ namespace WeavingGenerator
     private ProjectController _projectController => controllers.CurrentProjectController;
     public DialogDensity()
     {
-      InitializeComponent();
-      
+      InitializeComponent();      
     }
-
 
     private void DialogDensity_Load(object sender, EventArgs e)
     {
       ProjectData data = _projectController.GetProjectData();
-      if (data == null)
-      {
-        return;
-      }
-
+      if (data == null) return;
+      
       Warp warp = data.Warp;
-      if (warp == null)
-      {
-        return;
-      }
+      if (warp == null) return;
+      
       Weft weft = data.Weft;
-      if (weft == null)
-      {
-        return;
-      }
-
-
-      // 위사 밀도
+      if (weft == null) return;
+      
+      // 경사 밀도
       spinEdit_WarpDensity.Text = warp.Density.ToString();
 
       // 위사 밀도
       spinEdit_WeftDensity.Text = weft.Density.ToString();
-
     }
     private void simpleButton_Save_Click(object sender, EventArgs e)
     {
@@ -78,7 +66,6 @@ namespace WeavingGenerator
 
       int nWarpDensity = Util.ToInt(warpDensity);
       int nWeftDensity = Util.ToInt(weftDensity);
-
 
       ProjectData data = _projectController.GetProjectData();
       if (data == null)

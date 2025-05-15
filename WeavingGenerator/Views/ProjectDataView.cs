@@ -39,17 +39,27 @@ namespace WeavingGenerator.Views
       EventHandler<ItemCustomDrawEventArgs> groupCustomDraw,
       EventHandlers handlers)
     {
-      var group = new LayoutControlGroup
+
+      LayoutControlGroup group;
+      LayoutControlItem item;
+
+      group = new LayoutControlGroup
       {
         Text = "기본정보",
         CaptionImageOptions = { Image = Properties.Resources.icon_Basic_16 },
-        GroupStyle = DevExpress.Utils.GroupStyle.Title
+        GroupStyle = DevExpress.Utils.GroupStyle.Title,
+        TextVisible = true
       };
+      
       group.CustomDraw += groupCustomDraw;
+      //group.OptionsItemText.TextToControlDistance = 5; // 여백 설정 (선택)
+      //group.GroupBordersVisible = true; // ✅ 타이틀 표시 여부 결정
+      //group.AppearanceGroup.Font = new Font("맑은 고딕", 9, FontStyle.Bold);
+      //group.AppearanceGroup.ForeColor = Color.White;
+      //group.AppearanceGroup.Options.UseFont = true;
+      //group.AppearanceGroup.Options.UseForeColor = true;
       layout.Root.Add(group);
 
-      LayoutControlItem item;
-      
 
       // ▶ 프로젝트 명
       item = group.AddItem();
@@ -141,7 +151,8 @@ namespace WeavingGenerator.Views
         return color;
       }
     }
-    public void SetProjectData(ProjectData data)
+
+    public void LoadData(ProjectData data)
     {
       if (data == null) return;
 
@@ -153,7 +164,7 @@ namespace WeavingGenerator.Views
       colorEdit_DyeColor.Color = ProjectData.GetDyeColor(data.DyeColor);
     }
 
-    public void ApplyProjectData(ProjectData data)
+    public void SetData(ProjectData data)
     {
       if (data == null) return;
 

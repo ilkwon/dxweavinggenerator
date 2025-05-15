@@ -7,7 +7,7 @@ namespace WeavingGenerator.Views
   public interface IPropertyViewGroup
   {
     void BuildLayout(LayoutControl layout, Func<int, DevExpress.XtraLayout.Utils.Padding> createPadding, int paddingTopItem, int paddingTopGroup, EventHandler<ItemCustomDrawEventArgs> groupCustomDraw);
-    void SetProjectData(ProjectData data);
-    void ApplyProjectData(ProjectData data);
+    void LoadData(ProjectData data);
+    void SetData(ProjectData data);
   }
 }

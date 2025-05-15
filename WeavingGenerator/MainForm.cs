@@ -59,8 +59,12 @@ namespace WeavingGenerator
     private ProjectData _projectData;  // 선택된 프로젝트
     private WeaveViewer _weave2DViewer = null;
     private Task taskLoadedObject; // ⭐ 추가
-    private ProjectDataView _dataView;
-    public ProjectController ProjectCtrl => Controllers.Instance.CurrentProjectController;    
+    private ProjectDataView _basicView;
+    private WeftInfoView _weftView;
+    private WarpInfoView _warpView;
+    private PatternInfoView _patternView;
+    private PhysicalPropertyView _physicalPropertyView;
+    public ProjectController ProjectCtrl => Controllers.Instance.CurrentProjectController;
     //-----------------------------------------------------------------------
     public MainForm()
     {
@@ -78,39 +82,126 @@ namespace WeavingGenerator
     //-----------------------------------------------------------------------       
     private void InitPropertyView()
     {
-      _dataView = new ProjectDataView();
+      _basicView = new ProjectDataView();
 
       // 필드에 있는 프로젝트 데이터 로딩
       _projectData = ProjectCtrl.GetProjectData();
 
       // layoutControl_Property는 DevExpress의 LayoutControl 객체라고 가정
-      _dataView.BuildLayout(
+      _basicView.BuildLayout(
         layoutControl_Property,
         CreatePadding,        // Func<int, Padding>
         PADDING_TOP_ITEM,     // int
         PADDING_TOP_GROUP,    // int
-        Group_CustomDraw,     // EventHandler<ItemCustomDrawEventArgs>
+        ViewStyleHelper.DrawGroupGray,     // EventHandler<ItemCustomDrawEventArgs>
         null //new EventHandlers
-        //{
-        //  TextEdit_Name_Changed = TextEdit_Name_Changed,
-        //  ComboBoxEdit_Scale_Changed = ComboBoxEdit_Scale_Changed,
-        //  Check_YarnDyed_Changed = Check_YarnDyed_Changed
-        //}
+             //{
+             //  TextEdit_Name_Changed = TextEdit_Name_Changed,
+             //  ComboBoxEdit_Scale_Changed = ComboBoxEdit_Scale_Changed,
+             //  Check_YarnDyed_Changed = Check_YarnDyed_Changed
+             //}
       );
 
-      _dataView.SetProjectData(_projectData);
+      _basicView.LoadData(_projectData);
 
       // 그런 다음 이벤트 연결
-      _dataView.textEdit_Name.TextChanged += TextEdit_Name_Changed;
-      _dataView.comboBoxEdit_Scale.SelectedIndexChanged += ComboBoxEdit_Scale_Changed;
-      _dataView.checkEdit_YarnDyed.CheckedChanged += Check_YarnDyed_Changed;
-      _dataView.colorEdit_DyeColor.Click += ColorEdit_DyeColor_Click;
+      _basicView.textEdit_Name.TextChanged += TextEdit_Name_Changed;
+      _basicView.comboBoxEdit_Scale.SelectedIndexChanged += ComboBoxEdit_Scale_Changed;
+      _basicView.checkEdit_YarnDyed.CheckedChanged += Check_YarnDyed_Changed;
+      _basicView.colorEdit_DyeColor.Click += ColorEdit_DyeColor_Click;
+
+
+      //---------------------------------------------------------------------
+      // 위사
+      _weftView = new WeftInfoView();
+      _weftView.BuildLayout(layoutControl_Property, CreatePadding, PADDING_TOP_ITEM, PADDING_TOP_GROUP, ViewStyleHelper.Group_CustomDraw);
+      _weftView.LoadData(ProjectCtrl.GetProjectData());
+
+      // 이벤트 등록
+      _weftView.BtnWeftClicked += btnWeftClick;
+      _weftView.BtnWeftArrayClicked += btnWeftArrayClick;
+      _weftView.spinWeftDensity.ValueChanged += SpinEdit_WeftDensity_ValueChanged;
+
+      // 경사
+      _warpView = new WarpInfoView();
+      _warpView.BuildLayout(layoutControl_Property, CreatePadding, PADDING_TOP_ITEM, PADDING_TOP_GROUP, ViewStyleHelper.DrawGroupGray);
+      _warpView.LoadData(ProjectCtrl.GetProjectData());
+
+      _warpView.BtnWarpClicked += btnWarpClick;
+      _warpView.BtnWarpArrayClicked += btnWarpArrayClick;
+      _warpView.spinWarpDensity.ValueChanged += SpinEdit_WarpDensity_ValueChanged;
+
+      // 조직정보(패턴)
+      _patternView = new PatternInfoView();
+      _patternView.BuildLayout(layoutControl_Property, CreatePadding, PADDING_TOP_ITEM, PADDING_TOP_GROUP, ViewStyleHelper.DrawGroupGray);
+
+      // 이벤트 연결
+      _patternView.BtnSetPatternClicked += btnPatternClick;
+
+
+      _physicalPropertyView = new PhysicalPropertyView();
+      _physicalPropertyView = new PhysicalPropertyView();
+      _physicalPropertyView.BuildLayout(
+        layoutControl_Property,
+        CreatePadding,
+        PADDING_TOP_ITEM,
+        PADDING_TOP_GROUP,
+        ViewStyleHelper.Group_CustomDraw
+      );
+      _physicalPropertyView.LoadData(ProjectCtrl.GetProjectData());
+
+      // 이벤트 연결
+      _physicalPropertyView.BendingWeftChanged            += OnPhysicalPropertyChanged;
+      _physicalPropertyView.BendingWarpChanged            += OnPhysicalPropertyChanged;
+      _physicalPropertyView.InternalDampingChanged        += OnPhysicalPropertyChanged;
+      _physicalPropertyView.FrictionChanged               += OnPhysicalPropertyChanged;
+      _physicalPropertyView.DensityChanged                += OnPhysicalPropertyChanged;
+      _physicalPropertyView.StretchWeftChanged            += OnPhysicalPropertyChanged;
+      _physicalPropertyView.StretchWarpChanged            += OnPhysicalPropertyChanged;
+      _physicalPropertyView.BucklingStiffnessWeftChanged  += OnPhysicalPropertyChanged;
+      _physicalPropertyView.BucklingStiffnessWarpChanged  += OnPhysicalPropertyChanged;
+
+    }
+    private void PrintFunc([System.Runtime.CompilerServices.CallerMemberName] string caller = "")
+    {
+      string msg = $"[Log] Called by: {caller}";
+      //Console.WriteLine(msg);
+      //MessageBox.Show(msg);
+      System.Diagnostics.Debug.WriteLine(msg);
+    }
+
+    private void OnPhysicalPropertyChanged(object sender, EventArgs e)
+    {
+      PrintFunc();
+
+      if (ProjectController.SelectedProjectIdx < 0)
+        return;
+
+      ProjectData data = ProjectCtrl.GetProjectData();
+      if (data == null) return;
+
+      string propertyName = (sender as Control)?.Name;
+      if (string.IsNullOrEmpty(propertyName)) return;
+
+      var propertyInfo = data.PhysicalProperty.GetType().GetProperty(propertyName);
+      if (propertyInfo == null) return;
+
+      var field = _physicalPropertyView.GetType().GetField("textEdit_" + propertyName);
+      if (field.GetValue(_physicalPropertyView) is NumericUpDown numeric)
+      {
+        propertyInfo.SetValue(data.PhysicalProperty, (int)numeric.Value);
+        
+        // 뷰어에 적용
+        SetWeaveViewer(ProjectController.SelectedProjectIdx, data);
+        Debug.WriteLine($"[{propertyName}] 값 : {numeric.Value} 적용됨");
+      }
+
     }
 
     //-----------------------------------------------------------------------
     private void ColorEdit_DyeColor_Click(object sender, EventArgs e)
     {
-      if (_dataView.checkEdit_YarnDyed.Checked == true) return;
+      if (_basicView.checkEdit_YarnDyed.Checked == true) return;
 
       ColorEdit colorEdit = (ColorEdit)sender;
       Color oldColor = colorEdit.Color;
@@ -120,7 +211,7 @@ namespace WeavingGenerator
       //if (chk.Checked == false) return;
       //patternViewer1.SetYarnImage(chk.Checked);
 
-      ProjectData proj = ProjectCtrl.GetProjectData();      
+      ProjectData proj = ProjectCtrl.GetProjectData();
       if (proj != null)
       {
         proj.DyeColor = ProjectData.GetDyeColor(newColor);
@@ -138,9 +229,8 @@ namespace WeavingGenerator
         CheckEdit chk = (CheckEdit)sender;
         //if (chk.Checked == false) return;
         //patternViewer1.SetYarnImage(chk.Checked);
-
         ProjectData proj = ProjectCtrl.GetProjectData();
-        
+
         if (proj != null)
         {
           proj.YarnDyed = chk.Checked;
@@ -174,12 +264,12 @@ namespace WeavingGenerator
       if (data == null) return;
 
       int oldScale = _weave2DViewer.GetViewScale();
-      if (_dataView.comboBoxEdit_Scale.SelectedIndex == (oldScale - 1))
+      if (_basicView.comboBoxEdit_Scale.SelectedIndex == (oldScale - 1))
       {
         return;
       }
       // 3. 현재 선택된 스케일 값을 가져와서 저장
-      var selected = _dataView.comboBoxEdit_Scale.SelectedItem?.ToString();
+      var selected = _basicView.comboBoxEdit_Scale.SelectedItem?.ToString();
       if (!string.IsNullOrEmpty(selected))
       {
         data.Scale = selected;
@@ -187,7 +277,7 @@ namespace WeavingGenerator
 
       ShowProgressForm();
 
-      int viewScale = _dataView.comboBoxEdit_Scale.SelectedIndex + 1;
+      int viewScale = _basicView.comboBoxEdit_Scale.SelectedIndex + 1;
       _weave2DViewer.SetViewScale(viewScale, isRepaintScale);
 
       CloseProgressForm();
@@ -203,10 +293,10 @@ namespace WeavingGenerator
       if (currentProject == null) return;
 
       //Trace.WriteLine("textEdit_Name : " + textEdit_Name.Text);
-      if (_dataView?.textEdit_Name == null)
+      if (_basicView?.textEdit_Name == null)
         return;
-      
-      currentProject.Name = _dataView.textEdit_Name.Text;
+
+      currentProject.Name = _basicView.textEdit_Name.Text;
       UpdateProjectButton(currentProject.Idx, currentProject.Name);
     }
 
@@ -215,10 +305,6 @@ namespace WeavingGenerator
     {
       ShowProgressForm();
 
-      //string appPath = Application.StartupPath;
-      //Trace.WriteLine("Application Path : " + appPath);
-
-      //weave2DViewer = new WeaveViewer(this, pictureBox1);
       _weave2DViewer = new WeaveViewer(this);
       panel1.Controls.Add(_weave2DViewer);
 
@@ -305,59 +391,7 @@ namespace WeavingGenerator
       public int Idx { get; set; }
     }
     LayoutControlGroup lcgProject;
-    public
-    //기본정보
-    TextEdit textEdit_Name;
-    TextEdit textEdit_BasicInfoRegDt;
-    //ComboBoxEdit comboBoxEdit_OptionMetal;
-    ComboBoxEdit comboBoxEdit_Scale;
-    CheckEdit checkEdit_YarnImage;
-    //2025-02-05 soonchol
-    ColorPickEdit colorEdit_DyeColor;
-    CheckEdit checkEdit_YarnDyed;
-    //경사
-    SimpleButton simpleButton_Warp;
-    SimpleButton simpleButton_WarpArray;
-    SpinEdit spinEdit_WarpDensity;
-    //위사
-    SimpleButton simpleButton_Weft;
-    SimpleButton simpleButton_WeftArray;
-    SpinEdit spinEdit_WeftDensity;
-    //조직
-    TextEdit textEdit_Pattern;
-    SimpleButton simpleButton_Pattern;
-    //물성
-    /*
-    TextEdit textEdit_BendingWeft;
-    TextEdit textEdit_BendingWarp;
-    TextEdit textEdit_InternalDamping;
-    TextEdit textEdit_Friction;
-    TextEdit textEdit_Density;
-    TextEdit textEdit_StretchWeft;
-    TextEdit textEdit_StretchWarp;
-    TextEdit textEdit_BucklingStiffnessWeft;
-    TextEdit textEdit_BucklingStiffnessWarp;
-    */
-    NumericUpDown textEdit_BendingWeft;
-    NumericUpDown textEdit_BendingWarp;
-    NumericUpDown textEdit_InternalDamping;
-    NumericUpDown textEdit_Friction;
-    NumericUpDown textEdit_Density;
-    NumericUpDown textEdit_StretchWeft;
-    NumericUpDown textEdit_StretchWarp;
-    NumericUpDown textEdit_BucklingStiffnessWeft;
-    NumericUpDown textEdit_BucklingStiffnessWarp;
-
-    TrackBarControl trackBar_BendingWarp;
-    TrackBarControl trackBar_BendingWeft;
-    TrackBarControl trackBar_InternalDamping;
-    TrackBarControl trackBar_Friction;
-    TrackBarControl trackBar_Density;
-    TrackBarControl trackBar_StretchWeft;
-    TrackBarControl trackBar_StretchWarp;
-    TrackBarControl trackBar_BucklingStiffnessWeft;
-    TrackBarControl trackBar_BucklingStiffnessWarp;
-
+    
     //SimpleButton simpleButton_Json;
 
     //DevExpress.XtraLayout.EmptySpaceItem emptySpaceItem;
@@ -563,480 +597,7 @@ namespace WeavingGenerator
     {
       return new DevExpress.XtraLayout.Utils.Padding(3, 3, top, bottom);
     }
-    //-----------------------------------------------------------------------
-    private void InitPropertyView_old()
-    {
-      LayoutControlGroup group;
-      LayoutControlItem item;
-      LabelControl label;
-
-      EmptySpaceItem emptyItem;
-      //Font font = new Font();
-
-      layoutControl_Property.BeginUpdate();
-      //layoutControl_Property.LookAndFeel.UseDefaultLookAndFeel = false;
-      ///////////////////////////////////////////////////////////////////
-
-      group = new LayoutControlGroup();
-      group.Text = "기본정보";
-      group.CaptionImageOptions.Image = Properties.Resources.icon_Basic_16;
-      group.GroupStyle = DevExpress.Utils.GroupStyle.Title;
-      //skin 을 바꾸면 색상 적용 불가
-      //group.AppearanceGroup.BorderColor = Color.White;
-      //group.AppearanceGroup.BorderColor = Color.FromArgb(((int)(((byte)(1)))),((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
-      group.AppearanceGroup.Options.UseBorderColor = true;
-      group.CustomDraw += Group_CustomDraw;
-      //group.GroupStyle = GroupStyle.Card;
-      layoutControl_Property.Root.Add(group);
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "프로젝트 명";
-      item.Control = label;
-      item.TextVisible = false;
-            item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      textEdit_Name = new TextEdit();
-      textEdit_Name.TextChanged += textEdit_Name_TextChanged;
-      item.Control = textEdit_Name;
-      item.TextVisible = false;
-            item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "생성일자";
-      item.Control = label;
-      item.TextVisible = false;
-            item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      textEdit_BasicInfoRegDt = new TextEdit();
-      textEdit_BasicInfoRegDt.ReadOnly = true;
-      item.Control = textEdit_BasicInfoRegDt;
-      item.TextVisible = false;
-            /*
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "광택";
-      item.Control = label;
-      item.TextVisible = false;
-            item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      comboBoxEdit_OptionMetal = new ComboBoxEdit();
-      comboBoxEdit_OptionMetal.Properties.Items.AddRange(new object[] {
-          "FD",
-          "SD",
-          "BR"
-      });
-      comboBoxEdit_OptionMetal.SelectedIndexChanged += ComboBoxEdit_OptionMetal_SelectedIndexChanged;
-      comboBoxEdit_OptionMetal.SelectedIndex = 0;
-      comboBoxEdit_OptionMetal.Properties.TextEditStyle = DevExpress.XtraEditors.Controls.TextEditStyles.DisableTextEditor;
-      item.Control = comboBoxEdit_OptionMetal;
-      item.TextVisible = false;
-      */
-                        item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "확대";
-      item.Control = label;
-      item.TextVisible = false;
-            item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      comboBoxEdit_Scale = new ComboBoxEdit();
-      comboBoxEdit_Scale.Properties.Items.AddRange(new object[] {
-                "x01 (기본)",
-                "x02",
-                "x03",
-                "x04",
-                "x05",
-                "x06",
-                "x07",
-                "x08"
-            });
-      comboBoxEdit_Scale.SelectedIndexChanged += ComboBoxEdit_Scale_SelectedIndexChanged;
-      comboBoxEdit_Scale.SelectedIndex = 0;
-      comboBoxEdit_Scale.Properties.TextEditStyle = DevExpress.XtraEditors.Controls.TextEditStyles.DisableTextEditor;
-      item.Control = comboBoxEdit_Scale;
-      item.TextVisible = false;
-
-
-
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      checkEdit_YarnImage = new CheckEdit();
-      checkEdit_YarnImage.Text = "원사이미지 적용";
-      checkEdit_YarnImage.CheckedChanged += checkYarnImageCheckedChanged;
-      item.Control = checkEdit_YarnImage;
-      item.TextVisible = false;
-
-      /*
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM, PADDING_TOP_GROUP);
-      simpleButton_Json = new SimpleButton();
-      simpleButton_Json.Text = "JSON DATA";
-      simpleButton_Json.Click += btnJsonClick;
-      item.Control = simpleButton_Json;
-      item.TextVisible = false;
-      */
-      emptyItem = new EmptySpaceItem();
-      emptyItem.AllowHotTrack = false;
-      emptyItem.Size = new System.Drawing.Size(item.MinSize.Width, PADDING_TOP_GROUP);
-      emptyItem.TextSize = new System.Drawing.Size(0, 0);
-      layoutControl_Property.AddItem(emptyItem);
-
-      //2025-02-05 soonchol
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      colorEdit_DyeColor = new ColorPickEdit();
-      colorEdit_DyeColor.Text = "염색 색상";
-      colorEdit_DyeColor.Properties.ColorDialogOptions.ShowPreview = true;
-      colorEdit_DyeColor.Click += colorDyeColorClicked;
-      colorEdit_DyeColor.ReadOnly = true;
-      item.Control = colorEdit_DyeColor;
-      item.TextVisible = true;
-      item.Text = "염색 색상";
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      checkEdit_YarnDyed = new CheckEdit();
-      checkEdit_YarnDyed.Text = "선염";
-      checkEdit_YarnDyed.Checked = true;
-      checkEdit_YarnDyed.CheckedChanged += checkYarnDyedCheckedChanged;
-      item.Control = checkEdit_YarnDyed;
-      item.TextVisible = false;
-
-      ///////////////////////////////////////////////////////////////////
-      group = new LayoutControlGroup();
-      group.Text = "경사정보";
-      group.CaptionImageOptions.Image = Properties.Resources.icon_Basic_16;
-      group.GroupStyle = DevExpress.Utils.GroupStyle.Title;
-      group.CustomDraw += Group_CustomDraw;
-      layoutControl_Property.Root.Add(group);
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      simpleButton_Warp = new SimpleButton();
-      simpleButton_Warp.Text = "..";
-      simpleButton_Warp.Click += btnWarpClick;
-      item.Control = simpleButton_Warp;
-      item.Text = "경사 설정";
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      simpleButton_WarpArray = new SimpleButton();
-      simpleButton_WarpArray.Text = "..";
-      simpleButton_WarpArray.Click += btnWarpArrayClick;
-      item.Control = simpleButton_WarpArray;
-      item.Text = "경사 배열";
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "밀도";
-      item.Control = label;
-      item.TextVisible = false;
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      spinEdit_WarpDensity = new SpinEdit();
-      spinEdit_WarpDensity.Properties.IsFloatValue = false;
-      spinEdit_WarpDensity.Properties.MinValue = 10;
-      spinEdit_WarpDensity.Properties.MaxValue = 300;
-      spinEdit_WarpDensity.ValueChanged += SpinEdit_WarpDensity_ValueChanged;
-      item.Control = spinEdit_WarpDensity;
-      item.TextVisible = false;
-
-      emptyItem = new EmptySpaceItem();
-      emptyItem.AllowHotTrack = false;
-      emptyItem.Size = new System.Drawing.Size(item.MinSize.Width, PADDING_TOP_GROUP);
-      emptyItem.TextSize = new System.Drawing.Size(0, 0);
-      layoutControl_Property.AddItem(emptyItem);
-
-      ///////////////////////////////////////////////////////////////////
-      group = new LayoutControlGroup();
-      group.Text = "위사정보";
-      group.CaptionImageOptions.Image = Properties.Resources.icon_Basic_16;
-      group.GroupStyle = DevExpress.Utils.GroupStyle.Title;
-      group.CustomDraw += Group_CustomDraw;
-      layoutControl_Property.Root.Add(group);
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      simpleButton_Weft = new SimpleButton();
-      simpleButton_Weft.Text = "..";
-      simpleButton_Weft.Click += btnWeftClick;
-      item.Control = simpleButton_Weft;
-      item.Text = "위사 설정";
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      simpleButton_WeftArray = new SimpleButton();
-      simpleButton_WeftArray.Text = "..";
-      simpleButton_WeftArray.Click += btnWeftArrayClick;
-      item.Control = simpleButton_WeftArray;
-      item.Text = "위사 배열";
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "밀도";
-      item.Control = label;
-      item.TextVisible = false;
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      spinEdit_WeftDensity = new SpinEdit();
-      spinEdit_WeftDensity.Properties.IsFloatValue = false;
-      spinEdit_WeftDensity.Properties.MinValue = 10;
-      spinEdit_WeftDensity.Properties.MaxValue = 300;
-      spinEdit_WeftDensity.ValueChanged += SpinEdit_WeftDensity_ValueChanged;
-      item.Control = spinEdit_WeftDensity;
-      item.TextVisible = false;
-
-
-      emptyItem = new EmptySpaceItem();
-      emptyItem.AllowHotTrack = false;
-      emptyItem.Size = new System.Drawing.Size(item.MinSize.Width, PADDING_TOP_GROUP);
-      emptyItem.TextSize = new System.Drawing.Size(0, 0);
-      layoutControl_Property.AddItem(emptyItem);
-
-
-      ///////////////////////////////////////////////////////////////////
-      group = new LayoutControlGroup();
-      group.Text = "조직정보";
-      group.CaptionImageOptions.Image = Properties.Resources.icon_Basic_16;
-      group.GroupStyle = DevExpress.Utils.GroupStyle.Title;
-      group.CustomDraw += Group_CustomDraw;
-      layoutControl_Property.Root.Add(group);
-
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "조직";
-      item.Control = label;
-      item.TextVisible = false;
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      textEdit_Pattern = new TextEdit();
-      textEdit_Pattern.ReadOnly = true;
-      item.Control = textEdit_Pattern;
-      item.TextVisible = false;
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      simpleButton_Pattern = new SimpleButton();
-      simpleButton_Pattern.Text = "조직 설정";
-      simpleButton_Pattern.Click += btnPatternClick;
-      item.Control = simpleButton_Pattern;
-      item.TextVisible = false;
-
-      emptyItem = new EmptySpaceItem();
-      emptyItem.AllowHotTrack = false;
-      emptyItem.Size = new System.Drawing.Size(item.MinSize.Width, PADDING_TOP_GROUP);
-      emptyItem.TextSize = new System.Drawing.Size(0, 0);
-      layoutControl_Property.AddItem(emptyItem);
-
-      ///////////////////////////////////////////////////////////////////
-      group = new LayoutControlGroup();
-      group.Text = "물성정보";
-      group.CaptionImageOptions.Image = Properties.Resources.icon_Basic_16;
-      group.GroupStyle = DevExpress.Utils.GroupStyle.Title;
-      group.CustomDraw += Group_CustomDraw;
-      layoutControl_Property.Root.Add(group);
-
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "굽힘강도 위사 (Bending-Weft)";
-      item.Control = label;
-      item.TextVisible = false;
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      trackBar_BendingWeft = new TrackBarControl();
-      trackBar_BendingWeft.Name = "BendingWeft";
-      textEdit_BendingWeft = new NumericUpDown();
-      textEdit_BendingWeft.Name = "BendingWeft";
-      createPhysicalPropertyControl(item, trackBar_BendingWeft, textEdit_BendingWeft);
-
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "굽힘강도 경사 (Bending-Warp)";
-      item.Control = label;
-      item.TextVisible = false;
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      trackBar_BendingWarp = new TrackBarControl();
-      trackBar_BendingWarp.Name = "BendingWarp";
-      textEdit_BendingWarp = new NumericUpDown();
-      textEdit_BendingWarp.Name = "BendingWarp";
-      createPhysicalPropertyControl(item, trackBar_BendingWarp, textEdit_BendingWarp);
-
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "내부 댐핑 (Internal Damping)";
-      item.Control = label;
-      item.TextVisible = false;
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      trackBar_InternalDamping = new TrackBarControl();
-      trackBar_InternalDamping.Name = "InternalDamping";
-      textEdit_InternalDamping = new NumericUpDown();
-      textEdit_InternalDamping.Name = "InternalDamping";
-      createPhysicalPropertyControl(item, trackBar_InternalDamping, textEdit_InternalDamping);
-
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "마찰 계수 (Friction)";
-      item.Control = label;
-      item.TextVisible = false;
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      trackBar_Friction = new TrackBarControl();
-      trackBar_Friction.Name = "Friction";
-      textEdit_Friction = new NumericUpDown();
-      textEdit_Friction.Name = "Friction";
-      createPhysicalPropertyControl(item, trackBar_Friction, textEdit_Friction);
-
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "밀도 조절 (Density)";
-      item.Control = label;
-      item.TextVisible = false;
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      trackBar_Density = new TrackBarControl();
-      trackBar_Density.Name = "Density";
-      textEdit_Density = new NumericUpDown();
-      textEdit_Density.Name = "Density";
-      createPhysicalPropertyControl(item, trackBar_Density, textEdit_Density);
-
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "신축성 위사 (Stretch-Weft)";
-      item.Control = label;
-      item.TextVisible = false;
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      trackBar_StretchWeft = new TrackBarControl();
-      trackBar_StretchWeft.Name = "StretchWeft";
-      textEdit_StretchWeft = new NumericUpDown();
-      textEdit_StretchWeft.Name = "StretchWeft";
-      createPhysicalPropertyControl(item, trackBar_StretchWeft, textEdit_StretchWeft);
-
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "신축성 경사 (Stretch-Warp)";
-      item.Control = label;
-      item.TextVisible = false;
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      trackBar_StretchWarp = new TrackBarControl();
-      trackBar_StretchWarp.Name = "StretchWarp";
-      textEdit_StretchWarp = new NumericUpDown();
-      textEdit_StretchWarp.Name = "StretchWarp";
-      createPhysicalPropertyControl(item, trackBar_StretchWarp, textEdit_StretchWarp);
-
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "좌굴점 강도 위사 (Buckling Stiffness-Weft)";
-      item.Control = label;
-      item.TextVisible = false;
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      trackBar_BucklingStiffnessWeft = new TrackBarControl();
-      trackBar_BucklingStiffnessWeft.Name = "BucklingStiffnessWeft";
-      textEdit_BucklingStiffnessWeft = new NumericUpDown();
-      textEdit_BucklingStiffnessWeft.Name = "BucklingStiffnessWeft";
-      createPhysicalPropertyControl(item, trackBar_BucklingStiffnessWeft, textEdit_BucklingStiffnessWeft);
-
-
-      item = group.AddItem();
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      label = new LabelControl();
-      label.Text = "좌굴점 강도 경사 (Buckling Stiffness-Warp)";
-      item.Control = label;
-      item.TextVisible = false;
-
-      item = group.AddItem();
-      //item.Padding = CreatePadding(PADDING_TOP_ITEM);
-      trackBar_BucklingStiffnessWarp = new TrackBarControl();
-      trackBar_BucklingStiffnessWarp.Name = "BucklingStiffnessWarp";
-      textEdit_BucklingStiffnessWarp = new NumericUpDown();
-      textEdit_BucklingStiffnessWarp.Name = "BucklingStiffnessWarp";
-      createPhysicalPropertyControl(item, trackBar_BucklingStiffnessWarp, textEdit_BucklingStiffnessWarp);
-
-
-      ///////////////////////////////////////////////////////////////////
-      layoutControl_Property.EndUpdate();
-    }
-    //-----------------------------------------------------------------------
-    private void createPhysicalPropertyControl(LayoutControlItem item, TrackBarControl trackBar, NumericUpDown textEdit)
-    {
-      item.Padding = CreatePadding(PADDING_TOP_ITEM);
-
-      TableLayoutPanel tlp = new TableLayoutPanel();
-      //tlp.BackColor = System.Drawing.Color.Red;
-      tlp.Dock = DockStyle.Fill;
-
-      tlp.ColumnCount = 2;
-      tlp.RowCount = 1;
-      tlp.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 80F));
-      tlp.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-
-      trackBar.Dock = DockStyle.Fill;
-      trackBar.Properties.Maximum = 100;
-      trackBar.Properties.TickStyle = System.Windows.Forms.TickStyle.None;
-      trackBar.EditValueChanged += new System.EventHandler(this.trackBarControl_EditValueChanged);
-      //textEdit.EditValueChanged += new System.EventHandler(this.textEdit_EditValueChanged);
-      textEdit.ValueChanged += new System.EventHandler(this.numberUpDown_ValueChanged);
-
-      tlp.Controls.Add(trackBar, 0, 0);
-      tlp.Controls.Add(textEdit, 1, 0);
-      tlp.MinimumSize = new System.Drawing.Size(0, 40);
-      item.Control = tlp;
-      item.TextVisible = false;
-    }
-
-    private void Group_CustomDraw(object sender, ItemCustomDrawEventArgs e)
-    {
-      Color c = ColorTranslator.FromHtml("#707070");
-
-      using (SolidBrush brush = new SolidBrush(c))
-      {
-        e.Cache.FillRectangle(brush, e.Bounds);
-      }
-      // add ilkwon 25.04.29
-      // 필수: DevExpress 컨트롤에서 그리기 완료 표시
-      e.Handled = true; // ⭐⭐⭐ 이거 안 넣으면 계속 무한 호출될 수 있음
-    }
-
-
+    
 
     ///////////////////////////////////////////////////////////////////////
     // 시작 - 외부 인터페이스
@@ -1234,7 +795,7 @@ namespace WeavingGenerator
     {
       IsModified = false;
 
-      string name = textEdit_Name.Text;
+      string name = _basicView.textEdit_Name.Text;
       //string optionMetal = comboBoxEdit_OptionMetal.Text;
       string optionMetal = "FD";
       if (string.IsNullOrEmpty(name))
@@ -1244,40 +805,21 @@ namespace WeavingGenerator
       }
 
       ProjectData data = ProjectCtrl.GetProjectData();
-      //data.Name = name;
-      _dataView.ApplyProjectData(data);
+      
+      _basicView.SetData(data);      
+      _weftView.SetData(data);
+      _warpView.SetData(data);
+      _patternView.SetData(data);
+      _physicalPropertyView.SetData(data);
+
       data.OptionMetal = optionMetal;
-
-      data.Warp.Density = Util.ToInt(spinEdit_WarpDensity.Text);
-      data.Weft.Density = Util.ToInt(spinEdit_WeftDensity.Text);
-
-      /*
-      data.PhysicalProperty.BendingWarp = Util.ToInt(textEdit_BendingWarp.Text);
-      data.PhysicalProperty.BendingWeft = Util.ToInt(textEdit_BendingWeft.Text);
-      data.PhysicalProperty.InternalDamping = Util.ToInt(textEdit_InternalDamping.Text);
-      data.PhysicalProperty.Friction = Util.ToInt(textEdit_Friction.Text);
-      data.PhysicalProperty.Density = Util.ToInt(textEdit_Density.Text);
-      data.PhysicalProperty.StretchWeft = Util.ToInt(textEdit_StretchWeft.Text);
-      data.PhysicalProperty.StretchWarp = Util.ToInt(textEdit_StretchWarp.Text);
-      data.PhysicalProperty.BucklingStiffnessWeft = Util.ToInt(textEdit_BucklingStiffnessWeft.Text);
-      data.PhysicalProperty.BucklingStiffnessWarp = Util.ToInt(textEdit_BucklingStiffnessWarp.Text);
-      */
-      data.PhysicalProperty.BendingWeft = (int)(textEdit_BendingWeft.Value);
-      data.PhysicalProperty.BendingWarp = (int)(textEdit_BendingWarp.Value);
-      data.PhysicalProperty.InternalDamping = (int)(textEdit_InternalDamping.Value);
-      data.PhysicalProperty.Friction = (int)(textEdit_Friction.Value);
-      data.PhysicalProperty.Density = (int)(textEdit_Density.Value);
-      data.PhysicalProperty.StretchWeft = (int)(textEdit_StretchWeft.Value);
-      data.PhysicalProperty.StretchWarp = (int)(textEdit_StretchWarp.Value);
-      data.PhysicalProperty.BucklingStiffnessWeft = (int)(textEdit_BucklingStiffnessWeft.Value);
-      data.PhysicalProperty.BucklingStiffnessWarp = (int)(textEdit_BucklingStiffnessWarp.Value);
 
       ProjectData.DAO.Update(ProjectController.SelectedProjectIdx, data);
 
-      SaveAllProject();
+      WriteToLocalDB();
     }
     //-----------------------------------------------------------------------
-    private void SaveAllProject()
+    private void WriteToLocalDB()
     {
       IsModified = false;
 
@@ -1506,99 +1048,25 @@ namespace WeavingGenerator
       SetSelectedProjectButton(idx);
 
       // 기본 정보
-      _dataView.textEdit_Name.Text = data.Name;
-      _dataView.textEdit_BasicInfoRegDt.Text = Util.ToDateHuman(data.Reg_dt);
+      //_basicView.textEdit_Name.Text = data.Name;
+      //_basicView.textEdit_BasicInfoRegDt.Text = Util.ToDateHuman(data.Reg_dt);
+      _basicView.LoadData(data);
+      // 위사 정보      
+      _weftView.LoadData(data);
 
-      // 경사 정보
- //     spinEdit_WarpDensity.Text = data.Warp.Density.ToString();
- //
- //     // 위사 정보
- //     spinEdit_WeftDensity.Text = data.Weft.Density.ToString();
- //
- //     // 조직 정보
- //     textEdit_Pattern.Text = data.Pattern.Name;
- //
- //     // 물성 정보
- //     textEdit_BendingWeft.Value = data.PhysicalProperty.BendingWeft;
- //     textEdit_BendingWarp.Value = data.PhysicalProperty.BendingWarp;
- //     textEdit_InternalDamping.Value = data.PhysicalProperty.InternalDamping;
- //     textEdit_Friction.Value = data.PhysicalProperty.Friction;
- //     textEdit_Density.Value = data.PhysicalProperty.Density;
- //     textEdit_StretchWeft.Value = data.PhysicalProperty.StretchWeft;
- //     textEdit_StretchWarp.Value = data.PhysicalProperty.StretchWarp;
- //     textEdit_BucklingStiffnessWeft.Value = data.PhysicalProperty.BucklingStiffnessWeft;
- //     textEdit_BucklingStiffnessWarp.Value = data.PhysicalProperty.BucklingStiffnessWarp;
- //
- //     trackBar_BendingWarp.Value = data.PhysicalProperty.BendingWarp;
- //     trackBar_BendingWeft.Value = data.PhysicalProperty.BendingWeft;
- //     trackBar_InternalDamping.Value = data.PhysicalProperty.InternalDamping;
- //     trackBar_Friction.Value = data.PhysicalProperty.Friction;
- //     trackBar_Density.Value = data.PhysicalProperty.Density;
- //     trackBar_StretchWeft.Value = data.PhysicalProperty.StretchWeft;
- //     trackBar_StretchWarp.Value = data.PhysicalProperty.StretchWarp;
- //     trackBar_BucklingStiffnessWeft.Value = data.PhysicalProperty.BucklingStiffnessWeft;
- //     trackBar_BucklingStiffnessWarp.Value = data.PhysicalProperty.BucklingStiffnessWarp;
- //
- //     // 확대 제한 여부 계산
- //     int[] warpArr = data.Warp.GetWArrayInt();
- //     int[] weftArr = data.Weft.GetWArrayInt();
- //     int nWidth = warpArr.Length;
- //     int nHeight = weftArr.Length;
- //     int cnt = nWidth * nHeight;
- //
- //     if (cnt > 50000)
- //     {
- //       //SetFullScale(false);
- //     }
- //     else
- //     {
- //       //SetFullScale(true);
- //     }
- //
- //     // 색상, 선염 여부 (이건 기존 방식 유지)
- //     colorEdit_DyeColor.Color = ProjectData.GetDyeColor(data.DyeColor);
- //     checkEdit_YarnDyed.Checked = data.YarnDyed;
- 
+      // 경사 정보      
+      _warpView.LoadData(data);
+      
+      // 조직 정보
+      _patternView.LoadData(data);
+      
+      // 물성정보
+      _physicalPropertyView.LoadData(data);
+
       // 2D/3D 뷰어 반영
       SetWeaveViewer(idx, data);
     }
 
-
-    private void SetFullScale(bool full)
-    {
-      int n = comboBoxEdit_Scale.SelectedIndex;
-
-      if (full == false)
-      {
-        ///////////////////////////////////////////////////////////////
-        // 총 개수가 25000 이면 x01 ~ x03 까지만 지원
-        ///////////////////////////////////////////////////////////////
-        isRepaintScale = false;
-        comboBoxEdit_Scale.SelectedIndex = 0;
-        isRepaintScale = true;
-
-        comboBoxEdit_Scale.Properties.Items.Clear();
-        comboBoxEdit_Scale.Properties.Items.AddRange(new object[] {
-                    "x01 (기본)",
-                    "x02",
-                    "x03"
-                });
-      }
-      else
-      {
-        comboBoxEdit_Scale.Properties.Items.Clear();
-        comboBoxEdit_Scale.Properties.Items.AddRange(new object[] {
-                    "x01 (기본)",
-                    "x02",
-                    "x03",
-                    "x04",
-                    "x05",
-                    "x06",
-                    "x07",
-                    "x08"
-                });
-      }
-    }
 
     ///////////////////////////////////////////////////////////////////////
     // 끝 - 직물 정보 설정
@@ -1633,13 +1101,13 @@ namespace WeavingGenerator
 
       ///////////////////////////////////////////////////////////////////
       // 컨트롤 설정
-      ///////////////////////////////////////////////////////////////////
-      textEdit_Pattern.Text = pattern.Name;
-
+      ///////////////////////////////////////////////////////////////////      
+      _patternView.LoadData(data);
       SetWeaveViewer(ProjectController.SelectedProjectIdx, data);
     }
     public void ResetViewScale()
     {
+      var comboBoxEdit_Scale = _basicView.comboBoxEdit_Scale;
       if (comboBoxEdit_Scale.SelectedIndex == 0)
       {
         return;
@@ -1686,35 +1154,37 @@ namespace WeavingGenerator
       clo.setExportFilePath(fullPath);
 
 
-      int bendingWeft = (int)(textEdit_BendingWeft.Value);
-      int bendingWarp = (int)(textEdit_BendingWarp.Value);
-      int internalDamping = (int)(textEdit_InternalDamping.Value);
-      int friction = (int)(textEdit_Friction.Value);
-      int density = (int)(textEdit_Density.Value);
-      int stretchWeft = (int)(textEdit_StretchWeft.Value);
-      int stretchWarp = (int)(textEdit_StretchWarp.Value);
-      int bucklingStiffnessWeft = (int)(textEdit_BucklingStiffnessWeft.Value);
-      int bucklingStiffnessWarp = (int)(textEdit_BucklingStiffnessWarp.Value);
+      var data = ProjectCtrl.GetProjectData();
+      var phys = data?.PhysicalProperty;
+      if (phys == null)
+      {
+        XtraMessageBox.Show("물성정보가 없습니다. 내보내기를 중단합니다.");
+        return;
+      }
+    
+      clo.setPhysicalProperty(
+        phys.BendingWeft,
+        phys.BendingWarp,
+        phys.InternalDamping,
+        phys.Friction,
+        phys.Density,
+        phys.StretchWeft,
+        phys.StretchWarp,
+        phys.BucklingStiffnessWeft,
+        phys.BucklingStiffnessWarp
+      );
 
-      clo.setPhysicalProperty(bendingWeft,
-          bendingWarp,
-          internalDamping,
-          friction,
-          density,
-          stretchWeft,
-          stretchWarp,
-          bucklingStiffnessWeft,
-          bucklingStiffnessWarp);
 
-      Trace.WriteLine("bendingWeft : " + bendingWeft);
-      Trace.WriteLine("bendingWarp : " + bendingWarp);
-      Trace.WriteLine("internalDamping : " + internalDamping);
-      Trace.WriteLine("friction : " + friction);
-      Trace.WriteLine("density : " + density);
-      Trace.WriteLine("stretchWeft : " + stretchWeft);
-      Trace.WriteLine("stretchWarp : " + stretchWarp);
-      Trace.WriteLine("bucklingStiffnessWeft : " + bucklingStiffnessWeft);
-      Trace.WriteLine("bucklingStiffnessWarp : " + bucklingStiffnessWarp);
+      Trace.WriteLine($"Exporting fabric: {fullPath}");
+      Trace.WriteLine($" - BendingWeft: {phys.BendingWeft}");
+      Trace.WriteLine($" - BendingWarp: {phys.BendingWarp}");
+      Trace.WriteLine($" - InternalDamping: {phys.InternalDamping}");
+      Trace.WriteLine($" - Friction: {phys.Friction}");
+      Trace.WriteLine($" - Density: {phys.Density}");
+      Trace.WriteLine($" - StretchWeft: {phys.StretchWeft}");
+      Trace.WriteLine($" - StretchWarp: {phys.StretchWarp}");
+      Trace.WriteLine($" - BucklingStiffnessWeft: {phys.BucklingStiffnessWeft}");
+      Trace.WriteLine($" - BucklingStiffnessWarp: {phys.BucklingStiffnessWarp}");
 
       // 파일 만들기
       string fabFilePath = clo.exportFabric();
@@ -1741,22 +1211,9 @@ namespace WeavingGenerator
     }
 
     //-----------------------------------------------------------------------
-    private void textEdit_Name_TextChanged(object sender, EventArgs e)
-    {
-      if (ProjectController.SelectedProjectIdx < 0)
-      {
-        return;
-      }
-      ProjectData data = ProjectCtrl.GetProjectData();
-      if (data == null) return;
-
-      //Trace.WriteLine("textEdit_Name : " + textEdit_Name.Text);
-      data.Name = textEdit_Name.Text;
-      UpdateProjectButton(ProjectController.SelectedProjectIdx, data.Name);
-    }
-
     private void SpinEdit_WarpDensity_ValueChanged(object sender, EventArgs e)
     {
+      var spinEdit_WarpDensity = _weftView.spinWeftDensity;
       if (ProjectController.SelectedProjectIdx < 0)
       {
         return;
@@ -1775,8 +1232,10 @@ namespace WeavingGenerator
         SetWeaveViewer(ProjectController.SelectedProjectIdx, data);
       }
     }
+
     private void SpinEdit_WeftDensity_ValueChanged(object sender, EventArgs e)
     {
+      var spinEdit_WeftDensity = _weftView.spinWeftDensity;
       if (ProjectController.SelectedProjectIdx < 0)
       {
         return;
@@ -1798,57 +1257,8 @@ namespace WeavingGenerator
 
     }
 
-    //private void SpinBox_WarpDensity_LostFocus(object sender, EventArgs e)
-    //{
-    //    Trace.WriteLine("spinBox_WarpDensity : " + spinBox_WarpDensity.Text);
-    //}
-    /*
-    private void ComboBoxEdit_OptionMetal_SelectedIndexChanged(object sender, EventArgs e)
-    {
-        if (comboBoxEdit_OptionMetal.SelectedIndex < 0)
-        {
-            return;
-        }
-        ComboBoxEdit cb = (ComboBoxEdit)sender;
-        if (cb.SelectedIndex > -1)
-        {
-            string v = cb.SelectedItem.ToString();
-            SetMetalness(v);
-        }
-    }
-    */
     bool isRepaintScale = true;
-    private void ComboBoxEdit_Scale_SelectedIndexChanged(object sender, EventArgs e)
-    {
-      if (comboBoxEdit_Scale.SelectedIndex < 0)
-      {
-        return;
-      }
-
-      int oldScale = _weave2DViewer.GetViewScale();
-      if (comboBoxEdit_Scale.SelectedIndex == (oldScale - 1))
-      {
-        return;
-      }
-
-      ShowProgressForm();
-
-      int viewScale = comboBoxEdit_Scale.SelectedIndex + 1;
-      _weave2DViewer.SetViewScale(viewScale, isRepaintScale);
-
-      CloseProgressForm();
-
-    }
-
-    private void btnJsonClick(object sender, EventArgs e)
-    {
-      // 임시
-      DialogJsonData dialog = new DialogJsonData(this);
-
-      string json = ProjectCtrl.GetProjectData().SerializeJson();
-      dialog.SetJsonData(json);
-      dialog.ShowDialog();
-    }
+    
     private void btnWarpClick(object sender, EventArgs e)
     {
       DialogWarpInfo dialog = new DialogWarpInfo(this, ProjectCtrl.GetProjectData());
@@ -1891,31 +1301,6 @@ namespace WeavingGenerator
       //if (chk.Checked == false) return;
       //patternViewer1.SetYarnImage(chk.Checked);
       _weave2DViewer.SetYarnImage(chk.Checked);
-      ThreadViewerRepaint();
-    }
-
-    //2025-02-05 soonchol
-    private void colorDyeColorClicked(object sender, EventArgs e)
-    {
-      if (checkEdit_YarnDyed.Checked == true) return;
-
-      ColorEdit colorEdit = (ColorEdit)sender;
-      Color oldColor = colorEdit.Color;
-      Color newColor = DoShowColorDialog(oldColor);
-      colorEdit.Color = newColor;
-
-      //if (chk.Checked == false) return;
-      //patternViewer1.SetYarnImage(chk.Checked);
-
-      ProjectData wData = ProjectCtrl.GetProjectData();
-      //2025-02-05 soonchol
-      if (wData != null)
-      {
-        wData.DyeColor = ProjectData.GetDyeColor(newColor);
-        _weave2DViewer.SetYarnDyeColor(wData.DyeColor);
-      }
-
-      _weave2DViewer.SetProjectData(ProjectController.SelectedProjectIdx, ProjectCtrl.GetProjectData());
       ThreadViewerRepaint();
     }
 
@@ -2053,8 +1438,9 @@ namespace WeavingGenerator
       ProjectData data = ProjectCtrl.GetProjectData(newIdx);
       if (data == null) return;
 
-      spinEdit_WarpDensity.Text = data.Warp.Density.ToString();
-      spinEdit_WeftDensity.Text = data.Weft.Density.ToString();
+      _weftView.LoadData(data);
+      _warpView.LoadData(data);
+
       SetWeaveViewer(newIdx, data);
     }
     private void barButtonItem_OpenWarp_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
@@ -2450,69 +1836,6 @@ namespace WeavingGenerator
       dialog.ShowDialog();
     }
 
-    //-----------------------------------------------------------------------
-    private void trackBarControl_EditValueChanged(object sender, EventArgs e)
-    {
-      TrackBarControl trackBarControl = sender as TrackBarControl;
-      string name = trackBarControl.Name;
-      int value = Util.ToInt(trackBarControl.EditValue.ToString());
-
-      switch (name)
-      {
-        case "BendingWeft": textEdit_BendingWeft.Value = value; break;
-        case "BendingWarp": textEdit_BendingWarp.Value = value; break;
-        case "InternalDamping": textEdit_InternalDamping.Value = value; break;
-        case "Friction": textEdit_Friction.Value = value; break;
-        case "Density": textEdit_Density.Value = value; break;
-        case "StretchWeft": textEdit_StretchWeft.Value = value; break;
-        case "StretchWarp": textEdit_StretchWarp.Value = value; break;
-        case "BucklingStiffnessWeft": textEdit_BucklingStiffnessWeft.Value = value; break;
-        case "BucklingStiffnessWarp": textEdit_BucklingStiffnessWarp.Value = value; break;
-      }
-    }
-
-    //---------------------------------------------------------------------
-    private void textEdit_EditValueChanged(object sender, EventArgs e)
-    {
-      TextEdit textEdit = sender as TextEdit;
-      string name = textEdit.Name;
-      int value = Int32.Parse(textEdit.Text);
-
-      switch (name)
-      {
-        case "BendingWeft": trackBar_BendingWeft.Value = value; break;
-        case "BendingWarp": trackBar_BendingWarp.Value = value; break;
-        case "InternalDamping": trackBar_InternalDamping.Value = value; break;
-        case "Friction": trackBar_Friction.Value = value; break;
-        case "Density": trackBar_Density.Value = value; break;
-        case "StretchWeft": trackBar_StretchWeft.Value = value; break;
-        case "StretchWarp": trackBar_StretchWarp.Value = value; break;
-        case "BucklingStiffnessWeft": trackBar_BucklingStiffnessWeft.Value = value; break;
-        case "BucklingStiffnessWarp": trackBar_BucklingStiffnessWarp.Value = value; break;
-      }
-    }
-
-    //---------------------------------------------------------------------
-    private void numberUpDown_ValueChanged(object sender, EventArgs e)
-    {
-      NumericUpDown numberUpDown = sender as NumericUpDown;
-      string name = numberUpDown.Name;
-      int value = (int)numberUpDown.Value;
-
-      switch (name)
-      {
-        case "BendingWeft": trackBar_BendingWeft.Value = value; break;
-        case "BendingWarp": trackBar_BendingWarp.Value = value; break;
-        case "InternalDamping": trackBar_InternalDamping.Value = value; break;
-        case "Friction": trackBar_Friction.Value = value; break;
-        case "Density": trackBar_Density.Value = value; break;
-        case "StretchWeft": trackBar_StretchWeft.Value = value; break;
-        case "StretchWarp": trackBar_StretchWarp.Value = value; break;
-        case "BucklingStiffnessWeft": trackBar_BucklingStiffnessWeft.Value = value; break;
-        case "BucklingStiffnessWarp": trackBar_BucklingStiffnessWarp.Value = value; break;
-      }
-    }
-
     //---------------------------------------------------------------------
     private void SetWeaveViewer(int idx, ProjectData data)
     {
@@ -2840,5 +2163,5 @@ namespace WeavingGenerator
       return tcs.Task;
     }
   }
-  
+
 } /* namespace end */
