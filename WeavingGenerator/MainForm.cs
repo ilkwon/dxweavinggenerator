@@ -1,7 +1,6 @@
 ﻿using CefSharp;
-using DevExpress.ClipboardSource.SpreadsheetML;
-using DevExpress.DataAccess.Json;
 
+using DevExpress.DataAccess.Json;
 using DevExpress.XtraEditors;
 using DevExpress.XtraEditors.ColorPick.Picker;
 using DevExpress.XtraEditors.Repository;
@@ -29,7 +28,6 @@ using System.Windows.Forms;
 using WeavingGenerator.ProjectDatas;
 using WeavingGenerator.Views;
 
-//using WeavingGenerator.ViewModels;
 namespace WeavingGenerator
 {
   public partial class MainForm : DevExpress.XtraEditors.XtraForm
@@ -1295,15 +1293,7 @@ namespace WeavingGenerator
       dialog.ShowDialog();
       ThreadViewerRepaint();
     }
-    private void checkYarnImageCheckedChanged(object sender, EventArgs e)
-    {
-      CheckEdit chk = (CheckEdit)sender;
-      //if (chk.Checked == false) return;
-      //patternViewer1.SetYarnImage(chk.Checked);
-      _weave2DViewer.SetYarnImage(chk.Checked);
-      ThreadViewerRepaint();
-    }
-
+    
     protected Color DoShowColorDialog(Color color)
     {
       using (FrmColorPicker frm = new FrmColorPicker(new RepositoryItemColorPickEdit()))
@@ -1320,38 +1310,6 @@ namespace WeavingGenerator
           return color;
         }
       }
-    }
-
-    private void checkYarnDyedCheckedChanged(object sender, EventArgs e)
-    {
-      CheckEdit chk = (CheckEdit)sender;
-      //if (chk.Checked == false) return;
-      //patternViewer1.SetYarnImage(chk.Checked);
-
-      ProjectData wData = ProjectCtrl.GetProjectData();
-      //2025-02-05 soonchol
-      if (wData != null)
-      {
-        wData.YarnDyed = chk.Checked;
-
-        if (wData.YarnDyed == true)
-        {
-          _weave2DViewer.SetYarnDyeColor(null);
-        }
-        else
-        {
-          if (wData.DyeColor == null || wData.DyeColor == "")
-          {
-            wData.DyeColor = Default_DyeColor;
-          }
-
-          _weave2DViewer.SetYarnDyeColor(wData.DyeColor);
-        }
-
-      }
-
-      _weave2DViewer.SetProjectData(ProjectController.SelectedProjectIdx, ProjectCtrl.GetProjectData());
-      ThreadViewerRepaint();
     }
 
     // menu.new_project
@@ -1963,9 +1921,6 @@ namespace WeavingGenerator
         }
       }
     }
-    ///////////////////////////////////////////////////////////////////////
-    // 끝 - Thread
-    ///////////////////////////////////////////////////////////////////////
 
 
     ///////////////////////////////////////////////////////////////////////
@@ -2013,17 +1968,6 @@ namespace WeavingGenerator
       e.Server.WriteDefaultAction(e.Context);
     }
 
-    //-----------------------------------------------------------------------
-    private void trackBar2_Scroll(object sender, EventArgs e)
-    {
-
-    }
-
-    //-----------------------------------------------------------------------
-    public static bool isNumber(string strValue)
-    {
-      return Regex.IsMatch(strValue, @"[-+]?\d*\.?\d+");
-    }
 
     //-----------------------------------------------------------------------
     public bool ResizeImageFile(string pathSrc, string pathDest)
