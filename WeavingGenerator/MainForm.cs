@@ -1,6 +1,8 @@
 ﻿using CefSharp;
 
 using DevExpress.DataAccess.Json;
+using DevExpress.DataProcessing.InMemoryDataProcessor;
+using DevExpress.XtraDiagram.Base;
 using DevExpress.XtraEditors;
 using DevExpress.XtraEditors.ColorPick.Picker;
 using DevExpress.XtraEditors.Repository;
@@ -8,25 +10,23 @@ using DevExpress.XtraLayout;
 using DevExpress.XtraLayout.Utils;
 using DevExpress.XtraPrinting.Preview;
 using DevExpress.XtraSplashScreen;
-using DevExpress.XtraWaitForm;
 using Jm.DBConn;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WeavingGenerator.ProjectDatas;
 using WeavingGenerator.Views;
+using WeavingGenerator.WeavingPlan.Dtos;
+using WeavingGenerator.WeavingPlan.Mappers;
 
 namespace WeavingGenerator
 {
@@ -88,16 +88,10 @@ namespace WeavingGenerator
       // layoutControl_Property는 DevExpress의 LayoutControl 객체라고 가정
       _basicView.BuildLayout(
         layoutControl_Property,
-        CreatePadding,        // Func<int, Padding>
-        PADDING_TOP_ITEM,     // int
-        PADDING_TOP_GROUP,    // int
-        ViewStyleHelper.DrawGroupGray,     // EventHandler<ItemCustomDrawEventArgs>
-        null //new EventHandlers
-             //{
-             //  TextEdit_Name_Changed = TextEdit_Name_Changed,
-             //  ComboBoxEdit_Scale_Changed = ComboBoxEdit_Scale_Changed,
-             //  Check_YarnDyed_Changed = Check_YarnDyed_Changed
-             //}
+        CreatePadding,
+        PADDING_TOP_ITEM,
+        PADDING_TOP_GROUP,
+        ViewStyleHelper.DrawGroupGray     // EventHandler<ItemCustomDrawEventArgs>        
       );
 
       _basicView.LoadData(_projectData);
@@ -180,13 +174,16 @@ namespace WeavingGenerator
 
       string propertyName = (sender as Control)?.Name;
       if (string.IsNullOrEmpty(propertyName)) return;
-
+      
+      // ProjectData의 물성정보 값들 
       var propertyInfo = data.PhysicalProperty.GetType().GetProperty(propertyName);
       if (propertyInfo == null) return;
 
+      // PhysicalPropertyView의 UI Control 필드
       var field = _physicalPropertyView.GetType().GetField("textEdit_" + propertyName);
       if (field.GetValue(_physicalPropertyView) is NumericUpDown numeric)
       {
+        // UI -> ProjectData
         propertyInfo.SetValue(data.PhysicalProperty, (int)numeric.Value);
         
         // 뷰어에 적용
@@ -222,33 +219,32 @@ namespace WeavingGenerator
 
     //-----------------------------------------------------------------------
     private void Check_YarnDyed_Changed(object sender, EventArgs e)
-    {
+    {     
+      CheckEdit chk = (CheckEdit)sender;
+      //if (chk.Checked == false) return;
+      //patternViewer1.SetYarnImage(chk.Checked);
+      ProjectData proj = ProjectCtrl.GetProjectData();
+
+      if (proj != null)
       {
-        CheckEdit chk = (CheckEdit)sender;
-        //if (chk.Checked == false) return;
-        //patternViewer1.SetYarnImage(chk.Checked);
-        ProjectData proj = ProjectCtrl.GetProjectData();
+        proj.YarnDyed = chk.Checked;
 
-        if (proj != null)
+        if (proj.YarnDyed == true)
         {
-          proj.YarnDyed = chk.Checked;
-
-          if (proj.YarnDyed == true)
-          {
-            _weave2DViewer.SetYarnDyeColor(null);
-          }
-          else
-          {
-            if (proj.DyeColor == null || proj.DyeColor == "")
-              proj.DyeColor = Default_DyeColor;
-
-            _weave2DViewer.SetYarnDyeColor(proj.DyeColor);
-          }
+          _weave2DViewer.SetYarnDyeColor(null);
         }
+        else
+        {
+          if (proj.DyeColor == null || proj.DyeColor == "")
+            proj.DyeColor = Default_DyeColor;
 
-        _weave2DViewer.SetProjectData(ProjectController.SelectedProjectIdx, ProjectCtrl.GetProjectData());
-        ThreadViewerRepaint();
+          _weave2DViewer.SetYarnDyeColor(proj.DyeColor);
+        }
       }
+
+      _weave2DViewer.SetProjectData(ProjectController.SelectedProjectIdx, ProjectCtrl.GetProjectData());
+      ThreadViewerRepaint();
+    
     }
 
     private void ComboBoxEdit_Scale_Changed(object sender, EventArgs e)
@@ -1449,6 +1445,32 @@ namespace WeavingGenerator
       dialog.ShowDialog();
     }
 
+    //-----------------------------------------------------------------------
+    private JsonDataSource MakeWeavingSheetData()
+    {
+      string diffFilePath = MainForm.WWWROOT_PATH + "\\diff_" + ProjectController.SelectedProjectIdx + ".png";
+      string printFilePath = MainForm.WWWROOT_PATH + "\\diff_" + ProjectController.SelectedProjectIdx + "_Print.png";
+
+      ResizeImageFile(diffFilePath, printFilePath);
+
+      var weaveData = ProjectCtrl.GetProjectData();
+      var yarnList = Yarn.DAO.SelectAll();
+
+
+      // 조직설계서 DTO 매핑 : Weaven Data -> DTO->Json
+      //var dto = WeavingPlanSheetMapper.Map(weaveData, yarnList, printFilePath);
+      var dto = WeavingPlanSheetMapperEx.Map(weaveData, yarnList, printFilePath);
+      string json = JsonConvert.SerializeObject(dto, Formatting.Indented);
+
+      // ✅ DevExpress Report 연결
+      JsonDataSource jds = new JsonDataSource();
+      jds.JsonSource = new CustomJsonSource(json);
+      jds.Fill();
+
+      return jds;
+    }
+
+    //-----------------------------------------------------------------------
     private void barButtonItem_Print_ItemClick(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
     {
 
@@ -1460,6 +1482,56 @@ namespace WeavingGenerator
         return;
       }
 
+      string diffFilePath = MainForm.WWWROOT_PATH + "\\diff_" + ProjectController.SelectedProjectIdx + ".png";
+      string printFilePath = MainForm.WWWROOT_PATH + "\\diff_" + ProjectController.SelectedProjectIdx + "_Print.png";
+
+      // 100 px * 100 px , 96 dpi 는 인쇄시 약 1인치에 해당함
+      ResizeImageFile(diffFilePath, printFilePath);
+
+      ProjectData weaveData = ProjectCtrl.GetProjectData();
+      List<Yarn> yarnList = Yarn.DAO.SelectAll();
+
+      //BasicInfo binfo = weaveData.BasicInfo;
+      Pattern pattern = weaveData.Pattern;
+      Warp warp = weaveData.Warp;
+      Weft weft = weaveData.Weft;
+      PhysicalProperty pProperty = weaveData.PhysicalProperty;
+      
+      var sheet = MakeWeavingSheetData();
+      SendPrint(ref sheet);
+    }
+
+    //-----------------------------------------------------------------------
+    void SendPrint(ref JsonDataSource dataSource)
+    {
+      XtraReportPrint report = new XtraReportPrint(isVisibleWarpOfPrint)
+      {
+        DataSource = dataSource
+      };
+      report.CreateDocument();
+
+      PrintPreviewFormEx form = new PrintPreviewFormEx
+      {
+        StartPosition = FormStartPosition.Manual,
+        SaveState = false,
+        Location = GetChildFormLocation(),
+        PrintingSystem = report.PrintingSystem
+      };
+
+      form.ShowDialog();
+    }
+
+    private void barButtonItem_Print_ItemClick_old(object sender, DevExpress.XtraBars.ItemClickEventArgs e)
+    {
+
+      DialogPrintOption dialog = new DialogPrintOption(this);
+      dialog.StartPosition = FormStartPosition.Manual;
+      dialog.Location = GetChildFormLocation();
+      if (dialog.ShowDialog() != DialogResult.OK)
+      {
+        return;
+      }
+      
       string diffFilePath = MainForm.WWWROOT_PATH + "\\diff_" + ProjectController.SelectedProjectIdx + ".png";
       string printFilePath = MainForm.WWWROOT_PATH + "\\diff_" + ProjectController.SelectedProjectIdx + "_Print.png";
 

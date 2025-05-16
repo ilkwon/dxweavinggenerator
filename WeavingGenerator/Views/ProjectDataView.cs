@@ -25,7 +25,7 @@ namespace WeavingGenerator.Views
       int paddingTopItem,
       int paddingTopGroup,
       EventHandler<ItemCustomDrawEventArgs> groupCustomDraw,
-      EventHandlers handlers)
+      EventHandlers handlers = null)
     {
       layout.BeginUpdate();
       CreateBasicInfoGroup(layout, createPadding, paddingTopItem, groupCustomDraw, handlers);
